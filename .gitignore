@@ -12,6 +12,9 @@ Thumbs.db
 .vscode/
 *.swp
 
+# Claude Code internal
+.claude/
+
 # Logs
 *.log
 npm-debug.log*

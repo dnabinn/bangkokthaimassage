@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(unzip -o \"C:/Users/DNABINN/Desktop/files.zip\" -d .)",
-      "Bash(unzip -o \"bangkok-thai-massage.zip\" -d .)"
-    ]
-  }
-}
