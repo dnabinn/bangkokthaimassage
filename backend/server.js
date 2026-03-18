@@ -14,15 +14,21 @@ app.use(express.json());
 // ── CLIENTS ──
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const db = mysql.createPool({
-  host:     process.env.DB_HOST     || 'localhost',
-  user:     process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+const dbConfig = {
+  user:             process.env.DB_USER,
+  password:         process.env.DB_PASSWORD,
+  database:         process.env.DB_NAME,
   waitForConnections: true,
-  connectionLimit: 10,
-  charset: 'utf8mb4'
-});
+  connectionLimit:  10,
+  charset:          'utf8mb4'
+};
+// Use Unix socket if DB_SOCKET is set (avoids TCP permission issues on shared hosts)
+if (process.env.DB_SOCKET) {
+  dbConfig.socketPath = process.env.DB_SOCKET;
+} else {
+  dbConfig.host = process.env.DB_HOST || '127.0.0.1';
+}
+const db = mysql.createPool(dbConfig);
 
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
