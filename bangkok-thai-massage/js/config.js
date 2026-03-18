@@ -13,4 +13,4 @@ window.BACKEND_URL = (function () {
 }());
 
 // Stripe publishable key — safe to expose in frontend
-window.STRIPE_PUBLIC_KEY = 'pk_live_REPLACE_WITH_YOUR_STRIPE_PUBLIC_KEY';
+window.STRIPE_PUBLIC_KEY = 'pk_live_51T5B3LH1eDQy4U2F1GcykziFB58lEt1fcxBkDy4ri8WhqXqqPzzsqYtiHilqm4N8DN8iGdsLqRYTSdyEu80Blkki00LBWsDbI1';
