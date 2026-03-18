@@ -220,7 +220,7 @@ function buildEmailHtml({ ref, name, location, service, duration, date, time, pr
       <p style="color:#666;font-size:13px;line-height:1.7;">⏰ Por favor chegue 5 minutos antes da sua sessão.<br>📍 ${addr}</p>
     </div>
     <div style="background:#FAF7EF;padding:20px 40px;border-top:1px solid #E8E0D0;">
-      <p style="margin:0;font-size:12px;color:#999;">© Bangkok Thai Massage · geral@bangkokthaimassage.pt</p>
+      <p style="margin:0;font-size:12px;color:#999;">© Bangkok Thai Massage · info@bangkokthaimassage.pt</p>
     </div>
   </div>
 </body></html>`;
