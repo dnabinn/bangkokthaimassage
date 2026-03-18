@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reservar — Bangkok Thai Massage</title>
+  <meta name="description" content="Reserve a sua sessão de massagem online. Saldanha ou Costa da Caparica.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+  <script src="../js/config.js"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    body { background: var(--cream); }
+
+    /* ── PAGE LAYOUT ── */
+    .booking-page {
+      min-height: 100vh;
+      padding-top: 80px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      max-width: 1200px;
+      margin: 0 auto;
+      gap: 0;
+    }
+
+    /* ── LEFT: MAIN FORM ── */
+    .booking-main {
+      padding: 3rem 3rem 4rem;
+      border-right: 1px solid var(--border);
+      min-height: calc(100vh - 80px);
+    }
+
+    /* ── RIGHT: SUMMARY SIDEBAR ── */
+    .booking-sidebar {
+      padding: 3rem 2rem;
+      position: sticky;
+      top: 80px;
+      height: calc(100vh - 80px);
+      overflow-y: auto;
+      background: var(--white);
+    }
+
+    /* ── STEPS ── */
+    .steps-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 3rem;
+    }
+    .step-dot {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-shrink: 0;
+    }
+    .step-dot__circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--white);
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .step-dot__label {
+      font-size: 0.68rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .step-dot.active .step-dot__circle {
+      background: var(--green-deep);
+      border-color: var(--green-deep);
+      color: var(--gold);
+    }
+    .step-dot.active .step-dot__label { color: var(--text-dark); font-weight: 500; }
+    .step-dot.done .step-dot__circle {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--green-deep);
+    }
+    .step-dot.done .step-dot__label { color: var(--text-muted); }
+    .step-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      margin: 0 0.75rem;
+      min-width: 20px;
+    }
+    .step-line.done { background: var(--gold); opacity: 0.4; }
+
+    /* ── STEP PANELS ── */
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    .step-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 400;
+      color: var(--text-dark);
+      margin-bottom: 0.3rem;
+      line-height: 1.2;
+    }
+    .step-sub {
+      font-size: 0.82rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      line-height: 1.7;
+    }
+
+    /* ── STEP 1: LOCATION ── */
+    .loc-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .loc-pick-card {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      cursor: pointer;
+      transition: var(--transition);
+      background: var(--white);
+      position: relative;
+    }
+    .loc-pick-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+    .loc-pick-card.selected {
+      border-color: var(--green-mid);
+      border-width: 2px;
+      background: #F4FAF6;
+    }
+    .loc-pick-card__check {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--green-mid);
+      color: white;
+      font-size: 10px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .loc-pick-card.selected .loc-pick-card__check { display: flex; }
+    .loc-pick-card__city {
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+    .loc-pick-card__name {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 500;
+      color: var(--text-dark);
+      margin-bottom: 0.75rem;
+    }
+    .loc-pick-card__detail {
+      font-size: 0.78rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .loc-pick-card__hours {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .loc-pick-card__hours span { color: var(--gold); font-size: 0.8rem; }
+
+    /* ── STEP 2: SERVICE ── */
+    .svc-pick-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .svc-pick-row {
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 1.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+      gap: 1rem;
+    }
+    .svc-pick-row:hover { background: var(--cream); }
+    .svc-pick-row.selected { background: #F4FAF6; border-left: 3px solid var(--green-mid); }
+    .svc-pick-row__info { flex: 1; }
+    .svc-pick-row__name {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--text-dark);
+      margin-bottom: 0.15rem;
+    }
+    .svc-pick-row__tag {
+      font-size: 0.72rem;
+      font-weight: 300;
+      color: var(--text-muted);
+    }
+    .svc-pick-row__price {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 400;
+      color: var(--green-mid);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .svc-pick-row__radio {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    .svc-pick-row.selected .svc-pick-row__radio {
+      border-color: var(--green-mid);
+      background: var(--green-mid);
+    }
+    .svc-pick-row.selected .svc-pick-row__radio::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: white;
+    }
+
+    /* Duration picker */
+    .dur-picker {
+      margin-top: 1.5rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .dur-picker__label {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+    .dur-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .dur-btn {
+      padding: 0.55rem 1.25rem;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      background: var(--white);
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: var(--text-mid);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+    }
+    .dur-btn span { font-size: 0.65rem; color: var(--green-mid); font-weight: 500; }
+    .dur-btn:hover { border-color: var(--gold); color: var(--text-dark); }
+    .dur-btn.selected { background: var(--green-deep); border-color: var(--green-deep); color: var(--gold); }
+    .dur-btn.selected span { color: var(--gold-light); }
+
+    /* ── STEP 3: DATE & TIME ── */
+    .calendar-wrap {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .cal-nav-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .cal-month-label {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--text-dark);
+    }
+    .cal-nav-btn {
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--white);
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    .cal-nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .cal-days-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      margin-bottom: 0.4rem;
+    }
+    .cal-day-hdr {
+      text-align: center;
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0.3rem 0;
+    }
+    .cal-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+    }
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      color: var(--text-dark);
+      transition: var(--transition);
+      font-family: var(--font-body);
+    }
+    .cal-day:hover:not(.disabled):not(.empty) { background: var(--cream-dark); border-color: var(--gold); color: var(--text-dark); }
+    .cal-day.today { font-weight: 500; color: var(--green-mid); border-color: rgba(30,71,40,0.2); }
+    .cal-day.selected { background: var(--green-deep); color: var(--gold); border-color: var(--green-deep); }
+    .cal-day.selected.today { background: var(--green-deep); }
+    .cal-day.disabled { color: var(--border); cursor: default; }
+    .cal-day.empty { cursor: default; }
+
+    /* Time slots */
+    .time-section {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .time-period-label {
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.6rem;
+      margin-top: 1rem;
+      display: block;
+    }
+    .time-period-label:first-child { margin-top: 0; }
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-bottom: 0.25rem;
+    }
+    .time-btn {
+      padding: 0.5rem 0.25rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--white);
+      font-size: 0.75rem;
+      color: var(--text-dark);
+      cursor: pointer;
+      font-family: var(--font-body);
+      text-align: center;
+      transition: var(--transition);
+    }
+    .time-btn:hover:not(.taken) { border-color: var(--gold); color: var(--text-dark); background: var(--cream); }
+    .time-btn.selected { background: var(--green-deep); border-color: var(--green-deep); color: var(--gold); }
+    .time-btn.taken { color: var(--border); cursor: default; text-decoration: line-through; font-size: 0.68rem; }
+
+    /* ── STEP 4: DETAILS ── */
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-field { margin-bottom: 1rem; }
+    .form-label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.45rem;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--white);
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color var(--transition);
+      appearance: none;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--green-mid); }
+    .form-input.error { border-color: #C0392B; }
+    .form-textarea { min-height: 90px; resize: vertical; line-height: 1.6; }
+    .form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A7A5A' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
+
+    .field-error { font-size: 0.7rem; color: #C0392B; margin-top: 0.3rem; display: none; }
+    .field-error.show { display: block; }
+
+    /* ── STEP 5: PAYMENT ── */
+    .pay-methods {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .pay-method-btn {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 0.75rem;
+      cursor: pointer;
+      text-align: center;
+      background: var(--white);
+      transition: var(--transition);
+      font-family: var(--font-body);
+    }
+    .pay-method-btn:hover { border-color: var(--gold); }
+    .pay-method-btn.selected { border-color: var(--green-mid); border-width: 2px; background: #F4FAF6; }
+    .pay-method-btn__icon { font-size: 1.4rem; display: block; margin-bottom: 0.4rem; }
+    .pay-method-btn__label { font-size: 0.72rem; font-weight: 500; color: var(--text-dark); letter-spacing: 0.05em; }
+    .pay-method-btn__sub { font-size: 0.62rem; color: var(--text-muted); margin-top: 2px; }
+
+    .pay-fields { display: none; }
+    .pay-fields.show { display: block; }
+
+    .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .secure-note {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: var(--cream);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .secure-note svg { flex-shrink: 0; color: var(--green-mid); }
+
+    /* Stripe Elements card mount */
+    #stripe-card-element {
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--white);
+      transition: border-color var(--transition);
+    }
+    #stripe-card-element.StripeElement--focus { border-color: var(--green-mid); }
+    #stripe-card-element.StripeElement--invalid { border-color: #C0392B; }
+    .stripe-error { font-size: 0.7rem; color: #C0392B; margin-top: 0.4rem; display: none; }
+
+    .info-box {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      font-size: 0.82rem;
+      font-weight: 300;
+      color: var(--text-mid);
+      line-height: 1.8;
+      margin-bottom: 1.25rem;
+    }
+    .info-box strong { font-weight: 500; color: var(--text-dark); }
+
+    .whatsapp-alt {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 0.9rem;
+      border: 1.5px solid #25D366;
+      border-radius: var(--radius);
+      color: #25D366;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: rgba(37,211,102,0.04);
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      margin-top: 0.75rem;
+      font-family: var(--font-body);
+    }
+    .whatsapp-alt:hover { background: rgba(37,211,102,0.1); }
+
+    /* ── NAV BUTTONS ── */
+    .step-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      gap: 1rem;
+    }
+    .btn-back-step {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: color var(--transition);
+      padding: 0;
+    }
+    .btn-back-step:hover { color: var(--text-dark); }
+    .btn-next {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.9rem 2.5rem;
+      background: var(--gold);
+      color: var(--green-deep);
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .btn-next:hover { background: var(--gold-light); transform: translateY(-1px); }
+    .btn-next:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; }
+    .btn-confirm {
+      padding: 0.9rem 2.5rem;
+      background: var(--green-deep);
+      color: var(--gold);
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--green-deep);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .btn-confirm:hover { background: var(--green-dark); }
+
+    /* ── SIDEBAR ── */
+    .sidebar-title {
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.25rem;
+      display: block;
+    }
+    .sidebar-empty {
+      text-align: center;
+      padding: 2rem 0;
+    }
+    .sidebar-empty__icon {
+      font-size: 2rem;
+      color: var(--border);
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+    .sidebar-empty__text {
+      font-size: 0.82rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .sidebar-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .sum-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      gap: 0.5rem;
+    }
+    .sum-row:last-child { border-bottom: none; }
+    .sum-row__key {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .sum-row__val {
+      font-size: 0.85rem;
+      font-weight: 400;
+      color: var(--text-dark);
+      text-align: right;
+    }
+    .sum-row__val.gold {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--green-mid);
+      font-weight: 500;
+    }
+    .sum-row--total {
+      background: var(--cream);
+    }
+    .sidebar-edit {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+      padding: 0;
+      margin-top: 0.5rem;
+      display: block;
+    }
+    .sidebar-edit:hover { color: var(--gold); }
+
+    /* Health notice in sidebar */
+    .sidebar-notice {
+      background: rgba(201,168,76,0.08);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      font-size: 0.72rem;
+      font-weight: 300;
+      color: var(--text-mid);
+      line-height: 1.7;
+      margin-top: 1rem;
+    }
+    .sidebar-notice strong { color: var(--gold); font-weight: 500; }
+
+    /* ── CONFIRMATION ── */
+    .confirm-screen {
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+    .confirm-check {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #E8F5EE;
+      border: 2px solid #27AE60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 1.8rem;
+    }
+    .confirm-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 400;
+      color: #27AE60;
+      margin-bottom: 0.5rem;
+    }
+    .confirm-sub {
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      line-height: 1.8;
+      margin-bottom: 1.5rem;
+    }
+    .confirm-ref {
+      display: inline-block;
+      background: var(--cream-dark);
+      color: var(--green-mid);
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.5rem 1.5rem;
+      border-radius: 20px;
+      margin-bottom: 2rem;
+    }
+    .confirm-details {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+    .confirm-note {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      font-size: 0.8rem;
+      font-weight: 300;
+      color: var(--text-mid);
+      line-height: 1.8;
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .booking-page { grid-template-columns: 1fr; }
+      .booking-sidebar { display: none; }
+      .booking-main { padding: 2rem 1.25rem; }
+      .loc-cards { grid-template-columns: 1fr; }
+      .time-grid { grid-template-columns: repeat(4, 1fr); }
+      .pay-methods { grid-template-columns: 1fr 1fr 1fr; }
+      .form-grid-2 { grid-template-columns: 1fr; }
+      .card-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 500px) {
+      .steps-bar { gap: 0; }
+      .step-dot__label { display: none; }
+      .time-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav scrolled" id="nav">
+    <div class="nav__inner">
+      <a href="../index.html" class="nav__logo">
+        <span class="nav__logo-icon">✦</span>
+        <span class="nav__logo-text">Bangkok Thai Massage</span>
+      </a>
+      <ul class="nav__links" id="navLinks">
+        <li><a href="../index.html" class="nav__link" data-pt="Início" data-en="Home">Início</a></li>
+        <li><a href="localizacoes.html" class="nav__link" data-pt="Localizações & Serviços" data-en="Locations & Services">Localizações & Serviços</a></li>
+        <li><a href="sobre.html" class="nav__link" data-pt="Sobre" data-en="About">Sobre</a></li>
+        <li><a href="contacto.html" class="nav__link" data-pt="Contacto" data-en="Contact">Contacto</a></li>
+      </ul>
+      <div class="nav__actions">
+        <button class="lang-toggle" id="langToggle" onclick="toggleLang()">EN</button>
+        <a href="reservar.html" class="btn-book active" data-pt="Reservar" data-en="Book Now">Reservar</a>
+        <button class="nav__burger" id="burger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="booking-page">
+
+    <!-- ── MAIN FORM ── -->
+    <div class="booking-main">
+
+      <!-- Steps bar -->
+      <div class="steps-bar" id="stepsBar">
+        <div class="step-dot active" id="sdot1">
+          <div class="step-dot__circle">1</div>
+          <span class="step-dot__label" data-pt="Localização" data-en="Location">Localização</span>
+        </div>
+        <div class="step-line" id="sline1"></div>
+        <div class="step-dot" id="sdot2">
+          <div class="step-dot__circle">2</div>
+          <span class="step-dot__label" data-pt="Serviço" data-en="Service">Serviço</span>
+        </div>
+        <div class="step-line" id="sline2"></div>
+        <div class="step-dot" id="sdot3">
+          <div class="step-dot__circle">3</div>
+          <span class="step-dot__label" data-pt="Data & Hora" data-en="Date & Time">Data & Hora</span>
+        </div>
+        <div class="step-line" id="sline3"></div>
+        <div class="step-dot" id="sdot4">
+          <div class="step-dot__circle">4</div>
+          <span class="step-dot__label" data-pt="Dados" data-en="Details">Dados</span>
+        </div>
+        <div class="step-line" id="sline4"></div>
+        <div class="step-dot" id="sdot5">
+          <div class="step-dot__circle">5</div>
+          <span class="step-dot__label" data-pt="Pagamento" data-en="Payment">Pagamento</span>
+        </div>
+      </div>
+
+      <!-- ══ STEP 1: LOCATION ══ -->
+      <div class="step-panel active" id="sp1">
+        <h2 class="step-title" data-pt="Escolha a localização" data-en="Choose your location">Escolha a localização</h2>
+        <p class="step-sub" data-pt="Selecione o espaço onde pretende realizar a sua sessão." data-en="Select the space where you'd like to have your session.">Selecione o espaço onde pretende realizar a sua sessão.</p>
+        <div class="loc-cards">
+          <div class="loc-pick-card" id="loc-saldanha" onclick="selectLocation('saldanha', this)">
+            <div class="loc-pick-card__check">✓</div>
+            <span class="loc-pick-card__city" data-pt="Lisboa" data-en="Lisbon">Lisboa</span>
+            <div class="loc-pick-card__name">Saldanha</div>
+            <div class="loc-pick-card__detail">R. Gomes Freire 223C<br>1150-178 Lisboa</div>
+            <div class="loc-pick-card__hours"><span>◷</span> <span data-pt="Seg – Dom: 10h – 21h" data-en="Mon – Sun: 10am – 9pm">Seg – Dom: 10h – 21h</span></div>
+          </div>
+          <div class="loc-pick-card" id="loc-caparica" onclick="selectLocation('caparica', this)">
+            <div class="loc-pick-card__check">✓</div>
+            <span class="loc-pick-card__city" data-pt="Setúbal" data-en="Setúbal">Setúbal</span>
+            <div class="loc-pick-card__name">Costa da Caparica</div>
+            <div class="loc-pick-card__detail">R. dos Pescadores 5<br>2825-280 Costa da Caparica</div>
+            <div class="loc-pick-card__hours"><span>◷</span> <span data-pt="Seg – Sáb: 10h – 21h · Dom: 11h – 21h" data-en="Mon – Sat: 10am – 9pm · Sun: 11am – 9pm">Seg – Sáb: 10h – 21h · Dom: 11h – 21h</span></div>
+          </div>
+        </div>
+        <div class="step-nav">
+          <span></span>
+          <button class="btn-next" id="btn1" disabled onclick="goStep(2)" data-pt="Continuar →" data-en="Continue →">Continuar →</button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 2: SERVICE ══ -->
+      <div class="step-panel" id="sp2">
+        <h2 class="step-title" data-pt="Escolha o serviço" data-en="Choose your service">Escolha o serviço</h2>
+        <p class="step-sub" data-pt="Selecione a massagem pretendida e a duração." data-en="Select the massage you'd like and the duration.">Selecione a massagem pretendida e a duração.</p>
+        <div class="svc-pick-list" id="svcList"></div>
+        <div class="dur-picker" id="durPicker" style="display:none">
+          <span class="dur-picker__label" data-pt="Duração" data-en="Duration">Duração</span>
+          <div class="dur-options" id="durOptions"></div>
+        </div>
+        <div class="step-nav">
+          <button class="btn-back-step" onclick="goStep(1)">← <span data-pt="Voltar" data-en="Back">Voltar</span></button>
+          <button class="btn-next" id="btn2" disabled onclick="goStep(3)" data-pt="Continuar →" data-en="Continue →">Continuar →</button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 3: DATE & TIME ══ -->
+      <div class="step-panel" id="sp3">
+        <h2 class="step-title" data-pt="Data & Hora" data-en="Date & Time">Data & Hora</h2>
+        <p class="step-sub" data-pt="Escolha o dia e o horário que prefere." data-en="Choose the day and time you prefer.">Escolha o dia e o horário que prefere.</p>
+        <div class="calendar-wrap">
+          <div class="cal-nav-row">
+            <button class="cal-nav-btn" onclick="prevMonth()">‹</button>
+            <span class="cal-month-label" id="calLabel"></span>
+            <button class="cal-nav-btn" onclick="nextMonth()">›</button>
+          </div>
+          <div class="cal-days-header" id="calHeader"></div>
+          <div class="cal-days-grid" id="calGrid"></div>
+        </div>
+        <div class="time-section" id="timeSection" style="display:none">
+          <span class="time-period-label" data-pt="Manhã" data-en="Morning">Manhã</span>
+          <div class="time-grid" id="timeMorning"></div>
+          <span class="time-period-label" data-pt="Tarde" data-en="Afternoon">Tarde</span>
+          <div class="time-grid" id="timeAfternoon"></div>
+          <span class="time-period-label" data-pt="Noite" data-en="Evening">Noite</span>
+          <div class="time-grid" id="timeEvening"></div>
+        </div>
+        <div class="step-nav">
+          <button class="btn-back-step" onclick="goStep(2)">← <span data-pt="Voltar" data-en="Back">Voltar</span></button>
+          <button class="btn-next" id="btn3" disabled onclick="goStep(4)" data-pt="Continuar →" data-en="Continue →">Continuar →</button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 4: DETAILS ══ -->
+      <div class="step-panel" id="sp4">
+        <h2 class="step-title" data-pt="Os seus dados" data-en="Your details">Os seus dados</h2>
+        <p class="step-sub" data-pt="Preencha os seus dados para confirmar a reserva." data-en="Fill in your details to confirm the booking.">Preencha os seus dados para confirmar a reserva.</p>
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label class="form-label" data-pt="Nome *" data-en="First name *">Nome *</label>
+            <input class="form-input" id="fName" type="text" placeholder="Ana" oninput="validateDetails()">
+            <span class="field-error" id="err-fname" data-pt="Campo obrigatório" data-en="Required field">Campo obrigatório</span>
+          </div>
+          <div class="form-field">
+            <label class="form-label" data-pt="Apelido *" data-en="Last name *">Apelido *</label>
+            <input class="form-input" id="fLast" type="text" placeholder="Silva" oninput="validateDetails()">
+            <span class="field-error" id="err-flast" data-pt="Campo obrigatório" data-en="Required field">Campo obrigatório</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label" data-pt="Email *" data-en="Email *">Email *</label>
+          <input class="form-input" id="fEmail" type="email" placeholder="ana@email.com" oninput="validateDetails()">
+          <span class="field-error" id="err-femail" data-pt="Email inválido" data-en="Invalid email">Email inválido</span>
+        </div>
+        <div class="form-field">
+          <label class="form-label" data-pt="Telemóvel *" data-en="Phone *">Telemóvel *</label>
+          <input class="form-input" id="fPhone" type="tel" placeholder="+351 91 000 0000" oninput="validateDetails()">
+          <span class="field-error" id="err-fphone" data-pt="Campo obrigatório" data-en="Required field">Campo obrigatório</span>
+        </div>
+        <div class="form-field">
+          <label class="form-label" data-pt="Notas (opcional)" data-en="Notes (optional)">Notas (opcional)</label>
+          <textarea class="form-textarea" id="fNotes" placeholder="Alergias, lesões, preferências de pressão..."></textarea>
+        </div>
+        <div class="step-nav">
+          <button class="btn-back-step" onclick="goStep(3)">← <span data-pt="Voltar" data-en="Back">Voltar</span></button>
+          <button class="btn-next" id="btn4" disabled onclick="goStep(5)" data-pt="Continuar →" data-en="Continue →">Continuar →</button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 5: PAYMENT ══ -->
+      <div class="step-panel" id="sp5">
+        <h2 class="step-title" data-pt="Pagamento" data-en="Payment">Pagamento</h2>
+        <p class="step-sub" data-pt="Escolha o método de pagamento para confirmar a sua reserva." data-en="Choose your payment method to confirm your booking.">Escolha o método de pagamento para confirmar a sua reserva.</p>
+
+        <div class="pay-methods">
+          <div class="pay-method-btn selected" id="pm-card" onclick="selectPayMethod('card')">
+            <span class="pay-method-btn__icon">💳</span>
+            <div class="pay-method-btn__label" data-pt="Cartão" data-en="Card">Cartão</div>
+            <div class="pay-method-btn__sub">Visa · Mastercard</div>
+          </div>
+          <div class="pay-method-btn" id="pm-mbway" onclick="selectPayMethod('mbway')">
+            <span class="pay-method-btn__icon">📱</span>
+            <div class="pay-method-btn__label">MB WAY</div>
+            <div class="pay-method-btn__sub" data-pt="Instantâneo" data-en="Instant">Instantâneo</div>
+          </div>
+          <div class="pay-method-btn" id="pm-whatsapp" onclick="selectPayMethod('whatsapp')">
+            <span class="pay-method-btn__icon">💬</span>
+            <div class="pay-method-btn__label">WhatsApp</div>
+            <div class="pay-method-btn__sub" data-pt="Pague no local" data-en="Pay on site">Pague no local</div>
+          </div>
+        </div>
+
+        <div class="secure-note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          <span data-pt="Pagamento seguro processado pela Stripe. Os seus dados estão protegidos." data-en="Secure payment processed by Stripe. Your data is protected.">Pagamento seguro processado pela Stripe. Os seus dados estão protegidos.</span>
+        </div>
+
+        <!-- Card fields (Stripe Elements) -->
+        <div class="pay-fields show" id="fields-card">
+          <div class="form-field">
+            <label class="form-label" data-pt="Dados do cartão" data-en="Card details">Dados do cartão</label>
+            <div id="stripe-card-element"></div>
+            <span class="stripe-error" id="stripe-card-errors"></span>
+          </div>
+        </div>
+
+        <!-- MB WAY fields -->
+        <div class="pay-fields" id="fields-mbway">
+          <div class="form-field">
+            <label class="form-label" data-pt="Número de telemóvel MB WAY" data-en="MB WAY phone number">Número de telemóvel MB WAY</label>
+            <input class="form-input" id="mbwayNum" type="tel" placeholder="+351 91 000 0000" oninput="checkPayment()">
+          </div>
+          <div class="info-box" data-pt="Após confirmar, receberá uma notificação no app MB WAY para aprovar o pagamento." data-en="After confirming, you will receive a notification in the MB WAY app to approve the payment.">Após confirmar, receberá uma notificação no app MB WAY para aprovar o pagamento.</div>
+        </div>
+
+        <!-- WhatsApp option -->
+        <div class="pay-fields" id="fields-whatsapp">
+          <div class="info-box">
+            <strong data-pt="Reserva via WhatsApp" data-en="Book via WhatsApp">Reserva via WhatsApp</strong><br>
+            <span data-pt="Clique abaixo para enviar os detalhes da sua reserva diretamente para o nosso WhatsApp. O pagamento é efetuado no local na data da sessão." data-en="Click below to send your booking details directly to our WhatsApp. Payment is made on site on the day of the session.">Clique abaixo para enviar os detalhes da sua reserva diretamente para o nosso WhatsApp. O pagamento é efetuado no local na data da sessão.</span>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn-back-step" onclick="goStep(4)">← <span data-pt="Voltar" data-en="Back">Voltar</span></button>
+          <button class="btn-confirm" id="btnConfirm" onclick="confirmBooking()" data-pt="Confirmar Reserva" data-en="Confirm Booking">Confirmar Reserva</button>
+        </div>
+      </div>
+
+      <!-- ══ CONFIRMATION ══ -->
+      <div class="step-panel" id="sp6">
+        <div class="confirm-screen">
+          <div class="confirm-check">✓</div>
+          <h2 class="confirm-title" data-pt="Reserva confirmada!" data-en="Booking confirmed!">Reserva confirmada!</h2>
+          <p class="confirm-sub" data-pt="Obrigado! A sua sessão foi reservada com sucesso. Enviámos uma confirmação para o seu email." data-en="Thank you! Your session has been successfully booked. We sent a confirmation to your email.">Obrigado! A sua sessão foi reservada com sucesso. Enviámos uma confirmação para o seu email.</p>
+          <div class="confirm-ref" id="confirmRef">BTM-000000</div>
+          <div class="confirm-details sidebar-summary" id="confirmDetails"></div>
+          <div class="confirm-note">
+            📍 <span id="confirmAddr"></span><br>
+            ⏰ <span data-pt="Por favor chegue 5 minutos antes da sua sessão." data-en="Please arrive 5 minutes before your session.">Por favor chegue 5 minutos antes da sua sessão.</span><br>
+            📧 <span data-pt="Confirmação enviada para" data-en="Confirmation sent to">Confirmação enviada para</span> <strong id="confirmEmail"></strong>
+          </div>
+          <button class="btn-gold" onclick="resetBooking()" data-pt="Fazer nova reserva" data-en="Make another booking">Fazer nova reserva</button>
+        </div>
+      </div>
+
+    </div><!-- end booking-main -->
+
+    <!-- ── SIDEBAR ── -->
+    <div class="booking-sidebar">
+      <span class="sidebar-title" data-pt="Resumo da Reserva" data-en="Booking Summary">Resumo da Reserva</span>
+      <div id="sidebarContent">
+        <div class="sidebar-empty">
+          <span class="sidebar-empty__icon">✦</span>
+          <p class="sidebar-empty__text" data-pt="Selecione a localização e o serviço para ver o resumo da sua reserva." data-en="Select a location and service to see your booking summary.">Selecione a localização e o serviço para ver o resumo da sua reserva.</p>
+        </div>
+      </div>
+      <div class="sidebar-notice">
+        <strong data-pt="Informação de saúde:" data-en="Health notice:">Informação de saúde:</strong>
+        <span data-pt=" Informe-nos de diabetes, hipertensão, problemas cardíacos ou lesões recentes antes da sessão." data-en=" Please inform us of diabetes, hypertension, heart conditions or recent injuries before your session."> Informe-nos de diabetes, hipertensão, problemas cardíacos ou lesões recentes antes da sessão.</span>
+      </div>
+    </div>
+
+  </div><!-- end booking-page -->
+
+  <script src="../js/main.js"></script>
+  <script>
+  // ═══════════════════════════════════════
+  // BOOKING STATE
+  // ═══════════════════════════════════════
+  const B = {
+    step: 1,
+    location: null,
+    service: null,
+    duration: null,
+    price: null,
+    date: null,
+    time: null,
+    payMethod: 'card',
+    cal: { year: null, month: null }
+  };
+
+  // ── SERVICE DATA ──
+  const SERVICES = {
+    saldanha: [
+      { id:'relaxamento', name:'Massagem de Relaxamento', nameEn:'Relaxation Massage', tag:'Técnicas calmantes · Alívio da tensão', tagEn:'Calming techniques · Tension relief', durations:[{m:30,p:30},{m:60,p:50},{m:90,p:75},{m:120,p:100}] },
+      { id:'tradicional', name:'Massagem Tradicional Thai', nameEn:'Traditional Thai Massage', tag:'Acupressão · Alongamento · Trabalho energético', tagEn:'Acupressure · Stretching · Energy work', durations:[{m:60,p:50},{m:90,p:75},{m:120,p:100}] },
+      { id:'desportiva', name:'Massagem Desportiva / Tecido Profundo', nameEn:'Sports / Deep Tissue', tag:'Tensão muscular · Recuperação', tagEn:'Muscle tension · Recovery', durations:[{m:30,p:30},{m:60,p:50},{m:90,p:75},{m:120,p:100}] },
+      { id:'facial', name:'Massagem Facial e Cabeça', nameEn:'Facial & Head Massage', tag:'Circulação · Rejuvenescimento', tagEn:'Circulation · Rejuvenation', durations:[{m:45,p:30},{m:60,p:50}] },
+      { id:'pes', name:'Massagem nos Pés', nameEn:'Foot Massage', tag:'Reflexologia · Circulação', tagEn:'Reflexology · Circulation', durations:[{m:30,p:30},{m:60,p:50}] },
+      { id:'cabeca', name:'Cabeça, Pescoço e Ombro', nameEn:'Head, Neck & Shoulder', tag:'Pressão suave · Tensão cervical', tagEn:'Gentle pressure · Cervical tension', durations:[{m:30,p:30},{m:60,p:50}] },
+      { id:'ervas', name:'Massagem com Ervas Quentes', nameEn:'Hot Herb Massage', tag:'Ervas tailandesas · Calor terapêutico', tagEn:'Thai herbs · Therapeutic heat', durations:[{m:90,p:85},{m:120,p:110}] },
+      { id:'coco', name:'Massagem com Óleo de Coco', nameEn:'Coconut Oil Massage', tag:'Hidratação · Aroma de coco', tagEn:'Hydration · Coconut aroma', durations:[{m:60,p:55},{m:90,p:80},{m:120,p:105}] },
+      { id:'casais', name:'Massagem para Casais', nameEn:'Couples Massage', tag:'Relaxamento partilhado · 2 pessoas', tagEn:'Shared relaxation · 2 people', durations:[{m:60,p:95},{m:90,p:145},{m:120,p:180}] },
+      { id:'pedra', name:'Pedra Quente', nameEn:'Hot Stone', tag:'Pedras basálticas · Pressão suave', tagEn:'Basalt stones · Gentle pressure', durations:[{m:90,p:85},{m:120,p:110}] },
+      { id:'combinada', name:'Massagem Combinada', nameEn:'Combined Massage', tag:'Thai + óleo + acupressão', tagEn:'Thai + oil + acupressure', durations:[{m:60,p:55},{m:90,p:80},{m:120,p:105}] },
+      { id:'oleo', name:'Óleo Quente com Aroma Perfume', nameEn:'Warm Aromatherapy Oil', tag:'Aromaterapia · Óleo morno', tagEn:'Aromatherapy · Warm oil', durations:[{m:60,p:55},{m:90,p:80},{m:120,p:105}] },
+    ],
+    caparica: [
+      { id:'relaxamento', name:'Massagem de Relaxamento', nameEn:'Relaxation Massage', tag:'Técnicas calmantes · Alívio da tensão', tagEn:'Calming techniques · Tension relief', durations:[{m:30,p:30},{m:60,p:50},{m:90,p:75},{m:120,p:100}] },
+      { id:'tradicional', name:'Massagem Tradicional Thai', nameEn:'Traditional Thai Massage', tag:'Acupressão · Alongamento · Trabalho energético', tagEn:'Acupressure · Stretching · Energy work', durations:[{m:60,p:50},{m:90,p:75},{m:120,p:100}] },
+      { id:'desportiva', name:'Massagem Desportiva / Tecido Profundo', nameEn:'Sports / Deep Tissue', tag:'Tensão muscular · Recuperação', tagEn:'Muscle tension · Recovery', durations:[{m:30,p:30},{m:60,p:50},{m:90,p:75},{m:120,p:100}] },
+      { id:'facial', name:'Massagem Facial', nameEn:'Facial Massage', tag:'Circulação · Rejuvenescimento', tagEn:'Circulation · Rejuvenation', durations:[{m:30,p:30},{m:60,p:50}] },
+      { id:'pes', name:'Massagem nos Pés', nameEn:'Foot Massage', tag:'Reflexologia · Circulação', tagEn:'Reflexology · Circulation', durations:[{m:30,p:30},{m:60,p:50}] },
+      { id:'cabeca', name:'Cabeça, Pescoço e Ombro', nameEn:'Head, Neck & Shoulder', tag:'Pressão suave · Tensão cervical', tagEn:'Gentle pressure · Cervical tension', durations:[{m:30,p:30},{m:60,p:50}] },
+      { id:'ervas', name:'Massagem com Ervas Quentes', nameEn:'Hot Herb Massage', tag:'Ervas tailandesas · Calor terapêutico', tagEn:'Thai herbs · Therapeutic heat', durations:[{m:90,p:85},{m:120,p:110}] },
+      { id:'coco', name:'Massagem com Óleo de Coco', nameEn:'Coconut Oil Massage', tag:'Hidratação · Aroma de coco', tagEn:'Hydration · Coconut aroma', durations:[{m:60,p:55},{m:90,p:80},{m:120,p:105}] },
+      { id:'casais', name:'Massagem para Casais', nameEn:'Couples Massage', tag:'Relaxamento partilhado · 2 pessoas', tagEn:'Shared relaxation · 2 people', durations:[{m:60,p:95},{m:90,p:145},{m:120,p:195}] },
+      { id:'pedra', name:'Pedra Quente', nameEn:'Hot Stone', tag:'Pedras basálticas · Pressão suave', tagEn:'Basalt stones · Gentle pressure', durations:[{m:90,p:85},{m:120,p:110}] },
+      { id:'combinada', name:'Massagem Combinada', nameEn:'Combined Massage', tag:'Thai + óleo + acupressão', tagEn:'Thai + oil + acupressure', durations:[{m:60,p:50},{m:90,p:75},{m:120,p:100}] },
+      { id:'oleo', name:'Óleo Quente com Aroma Perfume', nameEn:'Warm Aromatherapy Oil', tag:'Aromaterapia · Óleo morno', tagEn:'Aromatherapy · Warm oil', durations:[{m:60,p:55},{m:90,p:80},{m:120,p:105}] },
+      { id:'esfoliacao', name:'Massagem com Esfoliação', nameEn:'Exfoliation Massage', tag:'Esfoliação corporal · Pele suave', tagEn:'Body exfoliation · Smooth skin', durations:[{m:90,p:85},{m:120,p:110}] },
+      { id:'gravidas', name:'Massagem para Grávidas', nameEn:'Pregnancy Massage', tag:'Segura · Suave · Futuras mamãs', tagEn:'Safe · Gentle · Expectant mothers', durations:[{m:30,p:30},{m:60,p:50},{m:90,p:75}] },
+    ]
+  };
+
+  const LOC_INFO = {
+    saldanha: { name:'Saldanha', addr:'R. Gomes Freire 223C, 1150-178 Lisboa', phone:'+351925693355', wa:'https://wa.me/+351925693355' },
+    caparica: { name:'Costa da Caparica', addr:'R. dos Pescadores 5, 2825-280 Costa da Caparica', phone:'+351932141557', wa:'https://wa.me/+351932141557' }
+  };
+
+  const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS_PT = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const DAYS_EN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let TAKEN = []; // populated live from /api/slots on each date pick
+
+  // ═══════════════════════════════════════
+  // STEP NAVIGATION
+  // ═══════════════════════════════════════
+  function goStep(n) {
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('sp' + n).classList.add('active');
+    for (let i = 1; i <= 5; i++) {
+      const dot = document.getElementById('sdot' + i);
+      const line = document.getElementById('sline' + i);
+      dot.classList.toggle('active', i === n);
+      dot.classList.toggle('done', i < n);
+      if (line) line.classList.toggle('done', i < n);
+    }
+    B.step = n;
+    updateSidebar();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ═══════════════════════════════════════
+  // STEP 1: LOCATION
+  // ═══════════════════════════════════════
+  function selectLocation(loc, el) {
+    document.querySelectorAll('.loc-pick-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    B.location = loc;
+    B.service = null; B.duration = null; B.price = null;
+    document.getElementById('btn1').disabled = false;
+    updateSidebar();
+  }
+
+  // ═══════════════════════════════════════
+  // STEP 2: SERVICE
+  // ═══════════════════════════════════════
+  function renderServices() {
+    const list = document.getElementById('svcList');
+    const svcs = SERVICES[B.location] || [];
+    const isEn = currentLang === 'en';
+    list.innerHTML = svcs.map((s, i) => `
+      <div class="svc-pick-row" id="svc-${s.id}" onclick="selectService('${s.id}', ${i})">
+        <div class="svc-pick-row__radio"></div>
+        <div class="svc-pick-row__info">
+          <div class="svc-pick-row__name">${isEn ? s.nameEn : s.name}</div>
+          <div class="svc-pick-row__tag">${isEn ? s.tagEn : s.tag}</div>
+        </div>
+        <span class="svc-pick-row__price">€${s.durations[0].p}+</span>
+      </div>
+    `).join('');
+    document.getElementById('durPicker').style.display = 'none';
+    document.getElementById('btn2').disabled = true;
+  }
+
+  function selectService(id, idx) {
+    document.querySelectorAll('.svc-pick-row').forEach(r => r.classList.remove('selected'));
+    document.getElementById('svc-' + id).classList.add('selected');
+    const svc = SERVICES[B.location][idx];
+    B.service = svc;
+    B.duration = null; B.price = null;
+    renderDurations(svc);
+    document.getElementById('btn2').disabled = true;
+    updateSidebar();
+  }
+
+  function renderDurations(svc) {
+    const picker = document.getElementById('durPicker');
+    const opts = document.getElementById('durOptions');
+    picker.style.display = 'block';
+    opts.innerHTML = svc.durations.map(d => `
+      <button class="dur-btn" onclick="selectDuration(${d.m}, ${d.p}, this)">
+        ${d.m} min<span>€${d.p}</span>
+      </button>
+    `).join('');
+  }
+
+  function selectDuration(min, price, el) {
+    document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    B.duration = min;
+    B.price = price;
+    document.getElementById('btn2').disabled = false;
+    updateSidebar();
+  }
+
+  // ═══════════════════════════════════════
+  // STEP 3: CALENDAR
+  // ═══════════════════════════════════════
+  function initCalendar() {
+    const now = new Date();
+    B.cal.year = now.getFullYear();
+    B.cal.month = now.getMonth();
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    const isEn = currentLang === 'en';
+    const months = isEn ? MONTHS_EN : MONTHS_PT;
+    const days = isEn ? DAYS_EN : DAYS_PT;
+    document.getElementById('calLabel').textContent = months[B.cal.month] + ' ' + B.cal.year;
+    const header = document.getElementById('calHeader');
+    header.innerHTML = days.map(d => `<div class="cal-day-hdr">${d}</div>`).join('');
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+    const first = new Date(B.cal.year, B.cal.month, 1).getDay();
+    const total = new Date(B.cal.year, B.cal.month + 1, 0).getDate();
+    const today = new Date(); today.setHours(0,0,0,0);
+    for (let i = 0; i < first; i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
+    for (let d = 1; d <= total; d++) {
+      const dt = new Date(B.cal.year, B.cal.month, d);
+      const isPast = dt < today;
+      const isSel = B.date && B.date.toDateString() === dt.toDateString();
+      const isToday = dt.toDateString() === today.toDateString();
+      const cls = [isPast ? 'disabled' : '', isSel ? 'selected' : '', isToday ? 'today' : ''].filter(Boolean).join(' ');
+      grid.innerHTML += `<div class="cal-day ${cls}" onclick="${isPast ? '' : `pickDay(${B.cal.year},${B.cal.month},${d})`}">${d}</div>`;
+    }
+  }
+
+  function prevMonth() {
+    if (B.cal.month === 0) { B.cal.month = 11; B.cal.year--; } else B.cal.month--;
+    renderCalendar();
+  }
+  function nextMonth() {
+    if (B.cal.month === 11) { B.cal.month = 0; B.cal.year++; } else B.cal.month++;
+    renderCalendar();
+  }
+
+  async function pickDay(y, m, d) {
+    B.date = new Date(y, m, d);
+    B.time = null;
+    document.getElementById('btn3').disabled = true;
+    renderCalendar();
+    await renderTimeSlots();
+    document.getElementById('timeSection').style.display = 'block';
+    updateSidebar();
+  }
+
+  async function renderTimeSlots() {
+    const morning   = ['09:00','09:30','10:00','10:30','11:00','11:30'];
+    const afternoon = ['12:00','13:00','14:00','14:30','15:00','15:30','16:00','16:30'];
+    const evening   = ['17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30'];
+    const dateStr = B.date.toISOString().split('T')[0];
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/slots?location=${B.location}&date=${dateStr}`);
+      const data = await res.json();
+      TAKEN = data.taken || [];
+    } catch (_) {
+      TAKEN = [];
+    }
+    fillSlots('timeMorning', morning);
+    fillSlots('timeAfternoon', afternoon);
+    fillSlots('timeEvening', evening);
+  }
+
+  function fillSlots(id, slots) {
+    document.getElementById(id).innerHTML = slots.map(t => {
+      const taken = TAKEN.includes(t);
+      const sel = B.time === t;
+      return `<button class="time-btn${taken?' taken':''}${sel?' selected':''}" onclick="${taken?'':'pickTime(\''+t+'\')'}"">${t}</button>`;
+    }).join('');
+  }
+
+  function pickTime(t) {
+    B.time = t;
+    renderTimeSlots();
+    document.getElementById('btn3').disabled = false;
+    updateSidebar();
+  }
+
+  // ═══════════════════════════════════════
+  // STEP 4: DETAILS VALIDATION
+  // ═══════════════════════════════════════
+  function validateDetails() {
+    const name  = document.getElementById('fName').value.trim();
+    const last  = document.getElementById('fLast').value.trim();
+    const email = document.getElementById('fEmail').value.trim();
+    const phone = document.getElementById('fPhone').value.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    document.getElementById('btn4').disabled = !(name && last && emailOk && phone.length > 7);
+  }
+
+  // ═══════════════════════════════════════
+  // STEP 5: PAYMENT
+  // ═══════════════════════════════════════
+  function selectPayMethod(method) {
+    document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('pm-' + method).classList.add('selected');
+    ['card','mbway','whatsapp'].forEach(m => {
+      document.getElementById('fields-' + m).classList.toggle('show', m === method);
+    });
+    B.payMethod = method;
+    checkPayment();
+  }
+
+  function checkPayment() {
+    // Card readiness is handled by the Stripe Element change event.
+    // For mbway/whatsapp we enable the button immediately.
+    if (B.payMethod !== 'card') {
+      document.getElementById('btnConfirm').disabled = false;
+    }
+  }
+
+  // ═══════════════════════════════════════
+  // CONFIRM BOOKING
+  // ═══════════════════════════════════════
+  async function confirmBooking() {
+    const btn = document.getElementById('btnConfirm');
+    btn.disabled = true;
+    btn.textContent = currentLang === 'en' ? 'Processing…' : 'A processar…';
+
+    const name  = document.getElementById('fName').value.trim() + ' ' + document.getElementById('fLast').value.trim();
+    const email = document.getElementById('fEmail').value.trim();
+    const phone = document.getElementById('fPhone').value.trim();
+    const notes = document.getElementById('fNotes').value.trim();
+    const loc   = LOC_INFO[B.location];
+    const isEn  = currentLang === 'en';
+    const svcName = isEn ? B.service.nameEn : B.service.name;
+    const dateISO = B.date.toISOString().split('T')[0];
+
+    const bookingPayload = {
+      location: B.location,
+      service:  svcName,
+      duration: B.duration,
+      price:    B.price,
+      date:     dateISO,
+      time:     B.time,
+      name, email, phone, notes,
+      payMethod: B.payMethod
+    };
+
+    function showError(msg) {
+      const el = document.getElementById('stripe-card-errors');
+      el.textContent = msg;
+      el.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = isEn ? 'Confirm Booking' : 'Confirmar Reserva';
+    }
+
+    try {
+      let ref;
+
+      if (B.payMethod === 'whatsapp') {
+        const res  = await fetch(`${BACKEND_URL}/api/book`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(bookingPayload) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        ref = data.ref;
+        const dateStr = B.date.toLocaleDateString(isEn ? 'en-GB' : 'pt-PT', { weekday:'long', day:'numeric', month:'long' });
+        const msg = encodeURIComponent(`Olá! Reserva: ${ref}\n📍 ${loc.name}\n💆 ${svcName} — ${B.duration} min\n📅 ${dateStr} às ${B.time}\n👤 ${name}`);
+        window.open(loc.wa + '?text=' + msg, '_blank');
+
+      } else if (B.payMethod === 'mbway') {
+        const mbwayPhone = document.getElementById('mbwayNum').value.trim();
+        const mbRes  = await fetch(`${BACKEND_URL}/api/mbway-charge`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ phone: mbwayPhone, amount: B.price }) });
+        const mbData = await mbRes.json();
+        if (!mbRes.ok) throw new Error(mbData.error || 'Erro MB WAY');
+        const res  = await fetch(`${BACKEND_URL}/api/book`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ...bookingPayload, mbwayTransactionId: mbData.transactionId }) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        ref = data.ref;
+
+      } else {
+        // Stripe card
+        const piRes  = await fetch(`${BACKEND_URL}/api/create-payment-intent`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ amount: B.price }) });
+        const piData = await piRes.json();
+        if (!piRes.ok) throw new Error(piData.error);
+        const { paymentIntent, error: stripeErr } = await stripe.confirmCardPayment(piData.clientSecret, { payment_method: { card: cardElement } });
+        if (stripeErr) throw new Error(stripeErr.message);
+        const res  = await fetch(`${BACKEND_URL}/api/book`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ...bookingPayload, paymentIntentId: paymentIntent.id }) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        ref = data.ref;
+      }
+
+      // ── Show confirmation screen ──
+      const dateStr = B.date.toLocaleDateString(isEn ? 'en-GB' : 'pt-PT', { weekday:'long', day:'numeric', month:'long' });
+      document.getElementById('confirmRef').textContent   = ref;
+      document.getElementById('confirmEmail').textContent = email;
+      document.getElementById('confirmAddr').textContent  = loc.addr;
+      document.getElementById('confirmDetails').innerHTML = `
+        <div class="sum-row"><span class="sum-row__key">${isEn?'Location':'Local'}</span><span class="sum-row__val">${loc.name}</span></div>
+        <div class="sum-row"><span class="sum-row__key">${isEn?'Service':'Serviço'}</span><span class="sum-row__val">${svcName}</span></div>
+        <div class="sum-row"><span class="sum-row__key">${isEn?'Duration':'Duração'}</span><span class="sum-row__val">${B.duration} min</span></div>
+        <div class="sum-row"><span class="sum-row__key">${isEn?'Date':'Data'}</span><span class="sum-row__val">${dateStr}</span></div>
+        <div class="sum-row"><span class="sum-row__key">${isEn?'Time':'Hora'}</span><span class="sum-row__val">${B.time}</span></div>
+        <div class="sum-row sum-row--total"><span class="sum-row__key">Total</span><span class="sum-row__val gold">€${B.price}</span></div>
+      `;
+      goStep(6);
+      document.querySelectorAll('.steps-bar, .booking-sidebar').forEach(el => el.style.opacity = '0.3');
+
+    } catch (err) {
+      showError(err.message);
+    }
+  }
+
+  function resetBooking() {
+    B.step=1; B.location=null; B.service=null; B.duration=null; B.price=null; B.date=null; B.time=null; B.payMethod='card';
+    document.querySelectorAll('.loc-pick-card').forEach(c=>c.classList.remove('selected'));
+    document.querySelectorAll('.steps-bar, .booking-sidebar').forEach(el=>el.style.opacity='1');
+    selectPayMethod('card');
+    goStep(1);
+  }
+
+  // ═══════════════════════════════════════
+  // SIDEBAR UPDATER
+  // ═══════════════════════════════════════
+  function updateSidebar() {
+    const isEn = currentLang === 'en';
+    const el = document.getElementById('sidebarContent');
+    if (!B.location && !B.service) {
+      el.innerHTML = `<div class="sidebar-empty"><span class="sidebar-empty__icon">✦</span><p class="sidebar-empty__text">${isEn?'Select a location and service to see your booking summary.':'Selecione a localização e o serviço para ver o resumo da sua reserva.'}</p></div>`;
+      return;
+    }
+    const loc = B.location ? LOC_INFO[B.location] : null;
+    const svcName = B.service ? (isEn ? B.service.nameEn : B.service.name) : '—';
+    const dateStr = B.date ? B.date.toLocaleDateString(isEn?'en-GB':'pt-PT',{weekday:'short',day:'numeric',month:'short'}) : '—';
+
+    el.innerHTML = `
+      <div class="sidebar-summary">
+        ${loc ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Location':'Local'}</span><span class="sum-row__val">${loc.name}</span></div>` : ''}
+        ${B.service ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Service':'Serviço'}</span><span class="sum-row__val">${svcName}</span></div>` : ''}
+        ${B.duration ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Duration':'Duração'}</span><span class="sum-row__val">${B.duration} min</span></div>` : ''}
+        ${B.date ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Date':'Data'}</span><span class="sum-row__val">${dateStr}</span></div>` : ''}
+        ${B.time ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Time':'Hora'}</span><span class="sum-row__val">${B.time}</span></div>` : ''}
+        ${B.price ? `<div class="sum-row sum-row--total"><span class="sum-row__key">Total</span><span class="sum-row__val gold">€${B.price}</span></div>` : ''}
+      </div>
+      ${B.service ? `<button class="sidebar-edit" onclick="goStep(2)">${isEn?'Change service':'Alterar serviço'}</button>` : ''}
+      ${B.date ? `<button class="sidebar-edit" onclick="goStep(3)">${isEn?'Change date':'Alterar data'}</button>` : ''}
+    `;
+  }
+
+  // ═══════════════════════════════════════
+  // INIT
+  // ═══════════════════════════════════════
+  // ── STRIPE INIT ──
+  let stripe, cardElement;
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof Stripe !== 'undefined' && window.STRIPE_PUBLIC_KEY && !window.STRIPE_PUBLIC_KEY.includes('REPLACE')) {
+      stripe = Stripe(window.STRIPE_PUBLIC_KEY);
+      const elements = stripe.elements();
+      cardElement = elements.create('card', {
+        style: {
+          base: {
+            fontFamily: 'Jost, sans-serif',
+            fontSize: '14px',
+            color: '#1A1A1A',
+            '::placeholder': { color: '#B8A88A' }
+          }
+        }
+      });
+      cardElement.mount('#stripe-card-element');
+      cardElement.on('change', ({ error, complete }) => {
+        const errEl = document.getElementById('stripe-card-errors');
+        if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
+        else { errEl.textContent = ''; errEl.style.display = 'none'; }
+        if (B.payMethod === 'card') {
+          document.getElementById('btnConfirm').disabled = !complete;
+        }
+      });
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initCalendar();
+    // Handle URL params
+    const p = new URLSearchParams(window.location.search);
+    const locP = p.get('loc');
+    const svcP = p.get('svc');
+    if (locP === 'saldanha' || locP === 'caparica') {
+      const card = document.getElementById('loc-' + locP);
+      selectLocation(locP, card);
+    }
+    // Re-render services when language changes
+    const origToggle = window.toggleLang;
+    window.toggleLang = function() {
+      origToggle();
+      if (B.step === 2 && B.location) renderServices();
+      initCalendar();
+      updateSidebar();
+    };
+  });
+
+  // Override goStep(2) to render services
+  const _goStep = goStep;
+  function goStep(n) {
+    _goStep(n);
+    if (n === 2 && B.location) renderServices();
+    if (n === 3) initCalendar();
+  }
+  </script>
+</body>
+</html>

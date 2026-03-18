@@ -1,0 +1,27 @@
+name: Deploy Frontend → Hostinger
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'bangkok-thai-massage/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy static files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}         # e.g. ftp.bangkokthaimassage.pt
+          username: ${{ secrets.FTP_USERNAME }}     # your Hostinger FTP user
+          password: ${{ secrets.FTP_PASSWORD }}     # your Hostinger FTP password
+          local-dir: ./bangkok-thai-massage/
+          server-dir: /public_html/                 # adjust if needed
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
