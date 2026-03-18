@@ -2,22 +2,27 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
+import mysql from 'mysql2/promise';
 import twilio from 'twilio';
 
 const app = express();
 
-app.use(cors({
-  origin: process.env.FRONTEND_URL || '*'
-}));
+app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
 app.use(express.json());
 
 // ── CLIENTS ──
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+
+const db = mysql.createPool({
+  host:     process.env.DB_HOST     || 'localhost',
+  user:     process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  charset: 'utf8mb4'
+});
+
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -29,7 +34,14 @@ const LOC_ADDR = {
 };
 
 // ── HEALTH CHECK ──
-app.get('/api/health', (_req, res) => res.json({ ok: true }));
+app.get('/api/health', async (_req, res) => {
+  try {
+    await db.execute('SELECT 1');
+    res.json({ ok: true, db: 'connected' });
+  } catch (e) {
+    res.status(500).json({ ok: false, db: e.message });
+  }
+});
 
 // ── GET /api/slots ──
 // Returns taken time slots for a given location + date
@@ -38,25 +50,23 @@ app.get('/api/slots', async (req, res) => {
   if (!location || !date) {
     return res.status(400).json({ error: 'location and date are required' });
   }
-
-  const { data, error } = await supabase
-    .from('blocked_slots')
-    .select('time')
-    .eq('location', location)
-    .eq('date', date);
-
-  if (error) return res.status(500).json({ error: error.message });
-  res.json({ taken: data.map(r => r.time) });
+  try {
+    const [rows] = await db.execute(
+      'SELECT time FROM blocked_slots WHERE location = ? AND date = ?',
+      [location, date]
+    );
+    res.json({ taken: rows.map(r => r.time) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ── POST /api/create-payment-intent ──
-// Creates a Stripe PaymentIntent; frontend confirms it with card element
 app.post('/api/create-payment-intent', async (req, res) => {
   const { amount } = req.body;
   if (!amount || amount <= 0) {
     return res.status(400).json({ error: 'amount is required' });
   }
-
   try {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // euros → cents
@@ -70,13 +80,11 @@ app.post('/api/create-payment-intent', async (req, res) => {
 });
 
 // ── POST /api/mbway-charge ──
-// Initiates an MB WAY push payment via SIBS API
 app.post('/api/mbway-charge', async (req, res) => {
   const { phone, amount, bookingRef } = req.body;
   if (!phone || !amount) {
     return res.status(400).json({ error: 'phone and amount are required' });
   }
-
   try {
     const response = await fetch('https://api.sibspayments.com/sibs/pos/v1/payments/mbway', {
       method: 'POST',
@@ -91,7 +99,6 @@ app.post('/api/mbway-charge', async (req, res) => {
         merchantId: process.env.MBWAY_MERCHANT_ID
       })
     });
-
     const data = await response.json();
     if (!response.ok) return res.status(response.status).json({ error: data });
     res.json(data);
@@ -101,7 +108,6 @@ app.post('/api/mbway-charge', async (req, res) => {
 });
 
 // ── POST /api/book ──
-// Saves booking, blocks slot, sends SMS + email
 app.post('/api/book', async (req, res) => {
   const {
     location, service, duration, price,
@@ -110,46 +116,44 @@ app.post('/api/book', async (req, res) => {
   } = req.body;
 
   const required = { location, service, duration, price, date, time, name, email, phone };
-  const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k);
+  const missing  = Object.entries(required).filter(([, v]) => !v).map(([k]) => k);
   if (missing.length) {
     return res.status(400).json({ error: `Missing fields: ${missing.join(', ')}` });
   }
 
-  const ref = 'BTM-' + Math.floor(100000 + Math.random() * 900000);
+  const ref    = 'BTM-' + Math.floor(100000 + Math.random() * 900000);
+  const status = payMethod === 'whatsapp' ? 'pending' : 'confirmed';
 
-  // 1. Save booking
-  const { error: bookingError } = await supabase
-    .from('bookings')
-    .insert({
-      ref, location, service, duration, price, date, time,
-      name, email, phone, notes: notes || null,
-      payment_intent_id: paymentIntentId || null,
-      pay_method: payMethod || 'unknown',
-      status: payMethod === 'whatsapp' ? 'pending' : 'confirmed'
-    });
+  try {
+    // 1. Save booking
+    await db.execute(
+      `INSERT INTO bookings
+        (ref, location, service, duration, price, date, time, name, email, phone, notes, payment_intent_id, pay_method, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ref, location, service, duration, price, date, time, name, email, phone,
+       notes || null, paymentIntentId || null, payMethod || 'unknown', status]
+    );
 
-  if (bookingError) {
-    return res.status(500).json({ error: bookingError.message });
+    // 2. Block the slot (INSERT IGNORE skips if already taken)
+    await db.execute(
+      'INSERT IGNORE INTO blocked_slots (location, date, time) VALUES (?, ?, ?)',
+      [location, date, time]
+    );
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 
-  // 2. Block the slot (ignore duplicate error — slot already taken)
-  await supabase
-    .from('blocked_slots')
-    .insert({ location, date, time })
-    .throwOnError(false);
-
-  // 3. Twilio SMS
+  // 3. Twilio SMS (non-blocking — booking is already saved)
   try {
+    const toPhone = phone.startsWith('+') ? phone : '+351' + phone.replace(/\s/g, '');
     await twilioClient.messages.create({
       body: `Bangkok Thai Massage\nReserva: ${ref}\n${service} – ${duration}min\n${date} às ${time}\n${LOC_ADDR[location]}\nObrigado, ${name.split(' ')[0]}!`,
       from: process.env.TWILIO_FROM_NUMBER,
-      to: phone.startsWith('+') ? phone : '+351' + phone.replace(/\s/g, '')
+      to: toPhone
     });
-
     const staffPhone = location === 'saldanha'
       ? process.env.STAFF_PHONE_SALDANHA
       : process.env.STAFF_PHONE_CAPARICA;
-
     if (staffPhone) {
       await twilioClient.messages.create({
         body: `[BTM] Nova reserva!\nRef: ${ref}\n${name} | ${phone}\n${service} – ${duration}min\n${date} às ${time}\nLocal: ${location}`,
@@ -158,10 +162,10 @@ app.post('/api/book', async (req, res) => {
       });
     }
   } catch (smsErr) {
-    console.error('Twilio SMS error:', smsErr.message);
+    console.error('Twilio error:', smsErr.message);
   }
 
-  // 4. Email via Resend
+  // 4. Email via Resend (non-blocking)
   try {
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -177,7 +181,7 @@ app.post('/api/book', async (req, res) => {
       })
     });
   } catch (emailErr) {
-    console.error('Resend email error:', emailErr.message);
+    console.error('Resend error:', emailErr.message);
   }
 
   res.json({ success: true, ref });
@@ -188,8 +192,7 @@ function buildEmailHtml({ ref, name, location, service, duration, date, time, pr
   const firstName = name.split(' ')[0];
   const addr = LOC_ADDR[location];
   return `<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"></head>
+<html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#FAF7EF;font-family:'Georgia',serif;">
   <div style="max-width:600px;margin:40px auto;background:#fff;border:1px solid #E8E0D0;border-radius:8px;overflow:hidden;">
     <div style="background:#0D2818;padding:32px 40px;">
@@ -210,15 +213,13 @@ function buildEmailHtml({ ref, name, location, service, duration, date, time, pr
           <tr><td style="padding:6px 0;color:#888;">Total</td><td style="padding:6px 0;color:#1E4728;font-weight:600;">€${price}</td></tr>
         </table>
       </div>
-      <p style="color:#666;font-size:13px;line-height:1.7;">⏰ Por favor chegue 5 minutos antes da sua sessão.<br>
-      📍 ${addr}</p>
+      <p style="color:#666;font-size:13px;line-height:1.7;">⏰ Por favor chegue 5 minutos antes da sua sessão.<br>📍 ${addr}</p>
     </div>
     <div style="background:#FAF7EF;padding:20px 40px;border-top:1px solid #E8E0D0;">
       <p style="margin:0;font-size:12px;color:#999;">© Bangkok Thai Massage · geral@bangkokthaimassage.pt</p>
     </div>
   </div>
-</body>
-</html>`;
+</body></html>`;
 }
 
 const PORT = process.env.PORT || 3000;
