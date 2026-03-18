@@ -4,6 +4,7 @@ import cors from 'cors';
 import Stripe from 'stripe';
 import mysql from 'mysql2/promise';
 import twilio from 'twilio';
+import nodemailer from 'nodemailer';
 
 const app = express();
 
@@ -27,6 +28,16 @@ const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
+
+const mailer = nodemailer.createTransport({
+  host: 'smtp.hostinger.com',
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,     // e.g. geral@bangkokthaimassage.pt
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
 
 const LOC_ADDR = {
   saldanha: 'R. Gomes Freire 223C, 1150-178 Lisboa',
@@ -165,23 +176,16 @@ app.post('/api/book', async (req, res) => {
     console.error('Twilio error:', smsErr.message);
   }
 
-  // 4. Email via Resend (non-blocking)
+  // 4. Email via Hostinger SMTP (non-blocking)
   try {
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: 'Bangkok Thai Massage <geral@bangkokthaimassage.pt>',
-        to: email,
-        subject: `Reserva confirmada — ${ref} | Bangkok Thai Massage`,
-        html: buildEmailHtml({ ref, name, location, service, duration, date, time, price })
-      })
+    await mailer.sendMail({
+      from: `"Bangkok Thai Massage" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `Reserva confirmada — ${ref} | Bangkok Thai Massage`,
+      html: buildEmailHtml({ ref, name, location, service, duration, date, time, price })
     });
   } catch (emailErr) {
-    console.error('Resend error:', emailErr.message);
+    console.error('Email error:', emailErr.message);
   }
 
   res.json({ success: true, ref });
