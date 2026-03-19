@@ -208,6 +208,67 @@ app.post('/api/book', async (req, res) => {
   res.json({ success: true, ref });
 });
 
+// ── ADMIN MIDDLEWARE ──
+function adminAuth(req, res, next) {
+  const pw = req.headers['x-admin-password'];
+  if (!pw || pw !== process.env.ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+}
+
+// ── GET /api/admin/bookings ──
+app.get('/api/admin/bookings', adminAuth, async (req, res) => {
+  const { location, status, from, to } = req.query;
+  let sql = 'SELECT * FROM bookings WHERE 1=1';
+  const params = [];
+  if (location) { sql += ' AND location = ?'; params.push(location); }
+  if (status)   { sql += ' AND status = ?';   params.push(status); }
+  if (from)     { sql += ' AND date >= ?';    params.push(from); }
+  if (to)       { sql += ' AND date <= ?';    params.push(to); }
+  sql += ' ORDER BY date DESC, time DESC';
+  try {
+    const [rows] = await db.execute(sql, params);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /api/admin/stats ──
+app.get('/api/admin/stats', adminAuth, async (req, res) => {
+  try {
+    const [[totals]] = await db.execute(`
+      SELECT
+        COUNT(*) AS total,
+        SUM(CASE WHEN status='confirmed' THEN 1 ELSE 0 END) AS confirmed,
+        SUM(CASE WHEN status='pending'   THEN 1 ELSE 0 END) AS pending,
+        SUM(CASE WHEN status='confirmed' THEN price ELSE 0 END) AS revenue,
+        SUM(CASE WHEN location='saldanha'  AND status='confirmed' THEN 1 ELSE 0 END) AS saldanha,
+        SUM(CASE WHEN location='caparica'  AND status='confirmed' THEN 1 ELSE 0 END) AS caparica,
+        SUM(CASE WHEN date = CURDATE() THEN 1 ELSE 0 END) AS today
+      FROM bookings
+    `);
+    res.json(totals);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── PATCH /api/admin/bookings/:ref ──
+app.patch('/api/admin/bookings/:ref', adminAuth, async (req, res) => {
+  const { status } = req.body;
+  if (!['confirmed', 'pending', 'cancelled'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' });
+  }
+  try {
+    await db.execute('UPDATE bookings SET status = ? WHERE ref = ?', [status, req.params.ref]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── EMAIL TEMPLATE ──
 function buildEmailHtml({ ref, name, location, service, duration, date, time, price }) {
   const firstName = name.split(' ')[0];

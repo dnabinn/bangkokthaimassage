@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BTM Admin — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:  #0D2818;
+      --gold:   #C9A84C;
+      --cream:  #FAF7EF;
+      --border: #E8E0D0;
+      --text:   #222;
+      --muted:  #888;
+      --red:    #c0392b;
+      --orange: #e67e22;
+      --teal:   #1E4728;
+    }
+
+    body { font-family: 'Jost', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; background: var(--green);
+    }
+    .login-box {
+      background: #fff; border-radius: 12px; padding: 48px 40px;
+      width: 360px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .login-box h1 { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+    .login-box p  { font-size: 22px; color: var(--green); font-weight: 400; margin-bottom: 32px; }
+    .login-box input {
+      width: 100%; padding: 12px 16px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 15px; font-family: inherit;
+      outline: none; margin-bottom: 16px; transition: border-color .2s;
+    }
+    .login-box input:focus { border-color: var(--gold); }
+    .login-box button {
+      width: 100%; padding: 13px; background: var(--green); color: #fff;
+      border: none; border-radius: 6px; font-size: 14px; letter-spacing: 0.1em;
+      text-transform: uppercase; cursor: pointer; transition: background .2s;
+    }
+    .login-box button:hover { background: var(--teal); }
+    #login-err { color: var(--red); font-size: 13px; margin-top: 12px; display: none; }
+
+    /* ── DASHBOARD ── */
+    #dashboard { display: none; }
+
+    header {
+      background: var(--green); color: #fff;
+      padding: 0 32px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-left span { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); }
+    .header-left strong { font-size: 16px; font-weight: 500; }
+    #btn-logout { background: none; border: 1px solid rgba(255,255,255,0.3); color: #fff;
+      padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;
+      letter-spacing: 0.1em; text-transform: uppercase; transition: border-color .2s; }
+    #btn-logout:hover { border-color: #fff; }
+
+    main { max-width: 1300px; margin: 0 auto; padding: 32px 24px; }
+
+    /* ── STATS ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px; margin-bottom: 32px;
+    }
+    .stat-card {
+      background: #fff; border: 1px solid var(--border); border-radius: 8px;
+      padding: 20px 24px;
+    }
+    .stat-card .label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .stat-card .value { font-size: 28px; font-weight: 600; color: var(--green); }
+    .stat-card .value.gold { color: var(--gold); }
+    .stat-card .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── FILTERS ── */
+    .filters {
+      background: #fff; border: 1px solid var(--border); border-radius: 8px;
+      padding: 20px 24px; margin-bottom: 24px;
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-group label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+    .filter-group select,
+    .filter-group input {
+      padding: 8px 12px; border: 1px solid var(--border); border-radius: 5px;
+      font-size: 13px; font-family: inherit; outline: none; background: #fff;
+      transition: border-color .2s;
+    }
+    .filter-group select:focus,
+    .filter-group input:focus { border-color: var(--gold); }
+    .btn-filter {
+      padding: 8px 20px; background: var(--green); color: #fff;
+      border: none; border-radius: 5px; font-size: 13px; cursor: pointer;
+      align-self: flex-end; transition: background .2s;
+    }
+    .btn-filter:hover { background: var(--teal); }
+    .btn-reset {
+      padding: 8px 16px; background: none; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 5px; font-size: 13px;
+      cursor: pointer; align-self: flex-end; transition: all .2s;
+    }
+    .btn-reset:hover { border-color: var(--text); color: var(--text); }
+
+    /* ── LOCATION SECTIONS ── */
+    .location-section { margin-bottom: 36px; }
+    .location-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 12px;
+    }
+    .location-header h2 { font-size: 14px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--green); }
+    .location-badge {
+      background: var(--green); color: var(--gold); font-size: 11px;
+      padding: 3px 10px; border-radius: 20px; letter-spacing: 0.1em;
+    }
+
+    /* ── TABLE ── */
+    .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
+    thead th {
+      background: var(--green); color: #fff; padding: 11px 14px;
+      text-align: left; font-weight: 500; font-size: 11px;
+      letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #fdf9f3; }
+    tbody td { padding: 11px 14px; vertical-align: middle; white-space: nowrap; }
+    .ref { font-family: monospace; font-size: 12px; color: var(--teal); font-weight: 600; }
+    .client-name { font-weight: 500; }
+    .client-phone { color: var(--muted); font-size: 12px; }
+    .client-email { color: var(--muted); font-size: 12px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+    .notes-cell { max-width: 140px; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-size: 12px; }
+
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .badge-confirmed  { background: #e8f5e9; color: #2e7d32; }
+    .badge-pending    { background: #fff3e0; color: #e65100; }
+    .badge-cancelled  { background: #fce4ec; color: #c62828; }
+
+    .badge-card   { background: #e3f2fd; color: #1565c0; }
+    .badge-mbway  { background: #f3e5f5; color: #6a1b9a; }
+    .badge-whatsapp { background: #e8f5e9; color: #1b5e20; }
+    .badge-unknown { background: #f5f5f5; color: #666; }
+
+    .status-select {
+      padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px;
+      font-size: 12px; font-family: inherit; cursor: pointer; background: #fff;
+    }
+    .status-select:focus { outline: none; border-color: var(--gold); }
+
+    .empty-row td { text-align: center; padding: 32px; color: var(--muted); font-size: 14px; }
+
+    /* ── LOADING ── */
+    #loading {
+      text-align: center; padding: 60px; color: var(--muted); font-size: 15px;
+    }
+    .spinner {
+      width: 32px; height: 32px; border: 3px solid var(--border);
+      border-top-color: var(--green); border-radius: 50%;
+      animation: spin .7s linear infinite; margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      main { padding: 16px; }
+      header { padding: 0 16px; }
+      .filters { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Bangkok Thai Massage</h1>
+    <p>Painel de Reservas</p>
+    <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password">
+    <button id="btn-login">Entrar</button>
+    <p id="login-err">Password incorreta.</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <header>
+    <div class="header-left">
+      <span>Bangkok Thai Massage</span>
+      <strong>Painel de Reservas</strong>
+    </div>
+    <button id="btn-logout">Sair</button>
+  </header>
+
+  <main>
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="label">Total Reservas</div><div class="value" id="stat-total">—</div></div>
+      <div class="stat-card"><div class="label">Hoje</div><div class="value" id="stat-today">—</div></div>
+      <div class="stat-card"><div class="label">Confirmadas</div><div class="value" id="stat-confirmed">—</div></div>
+      <div class="stat-card"><div class="label">Pendentes</div><div class="value" id="stat-pending">—</div></div>
+      <div class="stat-card"><div class="label">Receita Total</div><div class="value gold" id="stat-revenue">—</div></div>
+      <div class="stat-card"><div class="label">Saldanha</div><div class="value" id="stat-saldanha">—</div><div class="sub">reservas confirmadas</div></div>
+      <div class="stat-card"><div class="label">Caparica</div><div class="value" id="stat-caparica">—</div><div class="sub">reservas confirmadas</div></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-group">
+        <label>Local</label>
+        <select id="f-location">
+          <option value="">Todos</option>
+          <option value="saldanha">Saldanha</option>
+          <option value="caparica">Caparica</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Estado</label>
+        <select id="f-status">
+          <option value="">Todos</option>
+          <option value="confirmed">Confirmado</option>
+          <option value="pending">Pendente</option>
+          <option value="cancelled">Cancelado</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>De</label>
+        <input type="date" id="f-from">
+      </div>
+      <div class="filter-group">
+        <label>Até</label>
+        <input type="date" id="f-to">
+      </div>
+      <button class="btn-filter" id="btn-apply">Aplicar</button>
+      <button class="btn-reset" id="btn-reset">Limpar</button>
+    </div>
+
+    <!-- Bookings -->
+    <div id="bookings-container">
+      <div id="loading"><div class="spinner"></div>A carregar reservas…</div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/config.js"></script>
+<script>
+  const API = window.BACKEND_URL || '';
+  let adminPw = '';
+
+  // ── AUTH ──
+  const loginScreen = document.getElementById('login-screen');
+  const dashboard   = document.getElementById('dashboard');
+
+  function tryLogin() {
+    const pw = document.getElementById('pw-input').value.trim();
+    if (!pw) return;
+    adminPw = pw;
+    sessionStorage.setItem('btm_admin_pw', pw);
+    loadDashboard();
+  }
+
+  document.getElementById('btn-login').addEventListener('click', tryLogin);
+  document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    sessionStorage.removeItem('btm_admin_pw');
+    adminPw = '';
+    loginScreen.style.display = 'flex';
+    dashboard.style.display = 'none';
+  });
+
+  // Auto-login if session saved
+  const saved = sessionStorage.getItem('btm_admin_pw');
+  if (saved) { adminPw = saved; loadDashboard(); }
+
+  // ── LOAD ──
+  async function loadDashboard() {
+    try {
+      const statsRes = await fetch(`${API}/api/admin/stats`, { headers: { 'x-admin-password': adminPw } });
+      if (statsRes.status === 401) { showLoginError(); return; }
+      const stats = await statsRes.json();
+      renderStats(stats);
+      loginScreen.style.display = 'none';
+      dashboard.style.display = 'block';
+      await loadBookings();
+    } catch (e) {
+      showLoginError();
+    }
+  }
+
+  function showLoginError() {
+    document.getElementById('login-err').style.display = 'block';
+    adminPw = '';
+    sessionStorage.removeItem('btm_admin_pw');
+    loginScreen.style.display = 'flex';
+    dashboard.style.display = 'none';
+  }
+
+  async function loadBookings() {
+    document.getElementById('bookings-container').innerHTML = '<div id="loading"><div class="spinner"></div>A carregar reservas…</div>';
+    const params = new URLSearchParams();
+    const loc    = document.getElementById('f-location').value;
+    const status = document.getElementById('f-status').value;
+    const from   = document.getElementById('f-from').value;
+    const to     = document.getElementById('f-to').value;
+    if (loc)    params.set('location', loc);
+    if (status) params.set('status', status);
+    if (from)   params.set('from', from);
+    if (to)     params.set('to', to);
+
+    const res  = await fetch(`${API}/api/admin/bookings?${params}`, { headers: { 'x-admin-password': adminPw } });
+    const data = await res.json();
+    renderBookings(data);
+  }
+
+  document.getElementById('btn-apply').addEventListener('click', loadBookings);
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    ['f-location','f-status','f-from','f-to'].forEach(id => document.getElementById(id).value = '');
+    loadBookings();
+  });
+
+  // ── RENDER STATS ──
+  function renderStats(s) {
+    document.getElementById('stat-total').textContent     = s.total ?? 0;
+    document.getElementById('stat-today').textContent     = s.today ?? 0;
+    document.getElementById('stat-confirmed').textContent = s.confirmed ?? 0;
+    document.getElementById('stat-pending').textContent   = s.pending ?? 0;
+    document.getElementById('stat-revenue').textContent   = '€' + Number(s.revenue ?? 0).toFixed(2);
+    document.getElementById('stat-saldanha').textContent  = s.saldanha ?? 0;
+    document.getElementById('stat-caparica').textContent  = s.caparica ?? 0;
+  }
+
+  // ── RENDER BOOKINGS ──
+  function renderBookings(rows) {
+    const container = document.getElementById('bookings-container');
+    if (!rows.length) {
+      container.innerHTML = '<p style="text-align:center;color:#888;padding:48px">Nenhuma reserva encontrada.</p>';
+      return;
+    }
+
+    const grouped = { saldanha: [], caparica: [], other: [] };
+    rows.forEach(r => {
+      if (r.location === 'saldanha') grouped.saldanha.push(r);
+      else if (r.location === 'caparica') grouped.caparica.push(r);
+      else grouped.other.push(r);
+    });
+
+    const labels = { saldanha: 'Saldanha — Lisboa', caparica: 'Costa da Caparica', other: 'Outro' };
+    let html = '';
+    for (const [key, bookings] of Object.entries(grouped)) {
+      if (!bookings.length) continue;
+      html += `
+        <div class="location-section">
+          <div class="location-header">
+            <h2>${labels[key]}</h2>
+            <span class="location-badge">${bookings.length} reserva${bookings.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ref</th>
+                  <th>Data</th>
+                  <th>Hora</th>
+                  <th>Cliente</th>
+                  <th>Telefone</th>
+                  <th>Email</th>
+                  <th>Serviço</th>
+                  <th>Duração</th>
+                  <th>Preço</th>
+                  <th>Pagamento</th>
+                  <th>Notas</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${bookings.map(b => rowHtml(b)).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+    }
+    container.innerHTML = html;
+
+    // Status change handlers
+    container.querySelectorAll('.status-select').forEach(sel => {
+      sel.addEventListener('change', async e => {
+        const ref = e.target.dataset.ref;
+        const newStatus = e.target.value;
+        await fetch(`${API}/api/admin/bookings/${ref}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPw },
+          body: JSON.stringify({ status: newStatus })
+        });
+        // Refresh stats
+        const statsRes = await fetch(`${API}/api/admin/stats`, { headers: { 'x-admin-password': adminPw } });
+        renderStats(await statsRes.json());
+      });
+    });
+  }
+
+  function rowHtml(b) {
+    const payBadge = {
+      card: 'badge-card', mbway: 'badge-mbway', whatsapp: 'badge-whatsapp'
+    }[b.pay_method] || 'badge-unknown';
+
+    const payLabel = { card: 'Cartão', mbway: 'MB WAY', whatsapp: 'Local' }[b.pay_method] || b.pay_method;
+
+    return `<tr>
+      <td><span class="ref">${b.ref}</span></td>
+      <td>${formatDate(b.date)}</td>
+      <td>${b.time}</td>
+      <td><span class="client-name">${esc(b.name)}</span></td>
+      <td><span class="client-phone">${esc(b.phone)}</span></td>
+      <td><span class="client-email" title="${esc(b.email)}">${esc(b.email)}</span></td>
+      <td>${esc(b.service)}</td>
+      <td>${b.duration}min</td>
+      <td>€${Number(b.price).toFixed(2)}</td>
+      <td><span class="badge ${payBadge}">${payLabel}</span></td>
+      <td><span class="notes-cell" title="${esc(b.notes || '')}">${esc(b.notes || '—')}</span></td>
+      <td>
+        <select class="status-select" data-ref="${b.ref}">
+          <option value="confirmed" ${b.status==='confirmed'?'selected':''}>Confirmado</option>
+          <option value="pending"   ${b.status==='pending'  ?'selected':''}>Pendente</option>
+          <option value="cancelled" ${b.status==='cancelled'?'selected':''}>Cancelado</option>
+        </select>
+      </td>
+    </tr>`;
+  }
+
+  function formatDate(d) {
+    if (!d) return '—';
+    const [y, m, day] = String(d).slice(0,10).split('-');
+    return `${day}/${m}/${y}`;
+  }
+
+  function esc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>
