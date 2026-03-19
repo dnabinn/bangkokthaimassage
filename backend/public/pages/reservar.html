@@ -1109,6 +1109,8 @@
     B.step = n;
     updateSidebar();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (n === 2 && B.location) renderServices();
+    if (n === 3) initCalendar();
   }
 
   // ═══════════════════════════════════════
@@ -1471,13 +1473,6 @@
     };
   });
 
-  // Override goStep(2) to render services
-  const _goStep = goStep;
-  function goStep(n) {
-    _goStep(n);
-    if (n === 2 && B.location) renderServices();
-    if (n === 3) initCalendar();
-  }
   </script>
 </body>
 </html>
