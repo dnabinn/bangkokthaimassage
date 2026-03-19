@@ -15,7 +15,7 @@ app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
 app.use(express.json());
 
 // Serve frontend static files
-app.use(express.static(join(__dirname, '../bangkok-thai-massage')));
+app.use(express.static(join(__dirname, 'public')));
 
 // ── CLIENTS ──
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
