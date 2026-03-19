@@ -86,16 +86,21 @@ app.get('/api/slots', async (req, res) => {
 
 // ── POST /api/create-payment-intent ──
 app.post('/api/create-payment-intent', async (req, res) => {
-  const { amount } = req.body;
+  const { amount, paymentMethod } = req.body;
   if (!amount || amount <= 0) {
     return res.status(400).json({ error: 'amount is required' });
   }
   try {
-    const paymentIntent = await stripe.paymentIntents.create({
+    const params = {
       amount: Math.round(amount * 100), // euros → cents
       currency: 'eur',
-      automatic_payment_methods: { enabled: true }
-    });
+    };
+    if (paymentMethod === 'mb_way') {
+      params.payment_method_types = ['mb_way'];
+    } else {
+      params.automatic_payment_methods = { enabled: true };
+    }
+    const paymentIntent = await stripe.paymentIntents.create(params);
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (err) {
     res.status(500).json({ error: err.message });
