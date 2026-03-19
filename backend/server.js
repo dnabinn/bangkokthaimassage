@@ -108,28 +108,29 @@ app.post('/api/create-payment-intent', async (req, res) => {
 });
 
 // ── POST /api/mbway-charge ──
+// Creates AND confirms a MB WAY PaymentIntent server-side.
+// Stripe sends the push notification to the customer's MB WAY app directly.
 app.post('/api/mbway-charge', async (req, res) => {
-  const { phone, amount, bookingRef } = req.body;
+  const { phone, amount } = req.body;
   if (!phone || !amount) {
     return res.status(400).json({ error: 'phone and amount are required' });
   }
   try {
-    const response = await fetch('https://api.sibspayments.com/sibs/pos/v1/payments/mbway', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.MBWAY_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        amount: { value: amount, currency: 'EUR' },
-        merchantTransactionId: bookingRef || ('BTM-' + Date.now()),
-        customerPhone: phone.replace(/\s/g, ''),
-        merchantId: process.env.MBWAY_MERCHANT_ID
-      })
+    const toPhone = phone.startsWith('+') ? phone : '+351' + phone.replace(/\s/g, '');
+    // Create PaymentIntent for MB WAY
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100),
+      currency: 'eur',
+      payment_method_types: ['mb_way'],
     });
-    const data = await response.json();
-    if (!response.ok) return res.status(response.status).json({ error: data });
-    res.json(data);
+    // Confirm server-side with phone — Stripe sends push to MB WAY app
+    const confirmed = await stripe.paymentIntents.confirm(paymentIntent.id, {
+      payment_method_data: {
+        type: 'mb_way',
+        billing_details: { phone: toPhone },
+      },
+    });
+    res.json({ paymentIntentId: confirmed.id, status: confirmed.status });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

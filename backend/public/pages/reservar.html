@@ -1344,18 +1344,12 @@
 
       } else if (B.payMethod === 'mbway') {
         const mbwayPhone = document.getElementById('mbwayNum').value.trim();
-        // Create PaymentIntent for MB WAY via Stripe
-        const piRes = await fetch(`${BACKEND_URL}/api/create-payment-intent`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ amount: B.price, paymentMethod: 'mb_way' }) });
-        const piData = await piRes.json();
-        if (!piRes.ok) throw new Error(piData.error);
-        // Send MB WAY push notification via Stripe
-        const { paymentIntent, error: mbErr } = await stripe.confirmMbwayPayment(
-          piData.clientSecret,
-          { payment_method: { billing_details: { phone: mbwayPhone } } }
-        );
-        if (mbErr) throw new Error(mbErr.message);
+        // Confirm MB WAY server-side — Stripe sends push notification to customer's app
+        const mbRes  = await fetch(`${BACKEND_URL}/api/mbway-charge`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ phone: mbwayPhone, amount: B.price }) });
+        const mbData = await mbRes.json();
+        if (!mbRes.ok) throw new Error(mbData.error);
         // Save booking (payment pending customer approval in MB WAY app)
-        const res  = await fetch(`${BACKEND_URL}/api/book`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ...bookingPayload, paymentIntentId: paymentIntent.id, payMethod: 'mbway' }) });
+        const res  = await fetch(`${BACKEND_URL}/api/book`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ...bookingPayload, paymentIntentId: mbData.paymentIntentId, payMethod: 'mbway' }) });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
         ref = data.ref;
