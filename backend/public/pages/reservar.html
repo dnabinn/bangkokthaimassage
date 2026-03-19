@@ -1380,6 +1380,20 @@
         <div class="sum-row"><span class="sum-row__key">${isEn?'Time':'Hora'}</span><span class="sum-row__val">${B.time}</span></div>
         <div class="sum-row sum-row--total"><span class="sum-row__key">Total</span><span class="sum-row__val gold">€${B.price}</span></div>
       `;
+      // MB WAY: show pending approval message instead of confirmed
+      if (B.payMethod === 'mbway') {
+        document.querySelector('.confirm-check').textContent = '⏳';
+        document.querySelector('.confirm-title').textContent = isEn ? 'Awaiting MB WAY approval' : 'A aguardar aprovação MB WAY';
+        document.querySelector('.confirm-sub').textContent   = isEn
+          ? 'Check your MB WAY app and approve the payment of €' + B.price + '. Your booking will be confirmed once approved.'
+          : 'Abra o seu app MB WAY e aprove o pagamento de €' + B.price + '. A sua reserva será confirmada após aprovação.';
+      } else {
+        document.querySelector('.confirm-check').textContent = '✓';
+        document.querySelector('.confirm-title').textContent = isEn ? 'Booking confirmed!' : 'Reserva confirmada!';
+        document.querySelector('.confirm-sub').textContent   = isEn
+          ? 'Thank you! Your session has been successfully booked. We sent a confirmation to your email.'
+          : 'Obrigado! A sua sessão foi reservada com sucesso. Enviámos uma confirmação para o seu email.';
+      }
       goStep(6);
       document.querySelectorAll('.steps-bar, .booking-sidebar').forEach(el => el.style.opacity = '0.3');
 

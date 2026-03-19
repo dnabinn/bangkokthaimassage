@@ -12,6 +12,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
+// Raw body needed for Stripe webhook signature verification (must be before express.json)
+app.use('/api/stripe-webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 
 // Serve frontend static files
@@ -151,7 +153,8 @@ app.post('/api/book', async (req, res) => {
   }
 
   const ref    = 'BTM-' + Math.floor(100000 + Math.random() * 900000);
-  const status = payMethod === 'whatsapp' ? 'pending' : 'confirmed';
+  // mbway: pending until customer approves in MB WAY app (webhook confirms it)
+  const status = (payMethod === 'whatsapp' || payMethod === 'mbway') ? 'pending' : 'confirmed';
 
   try {
     // 1. Save booking
@@ -207,6 +210,35 @@ app.post('/api/book', async (req, res) => {
   }
 
   res.json({ success: true, ref });
+});
+
+// ── STRIPE WEBHOOK ──
+// Confirms MB WAY bookings when customer approves payment in the app
+app.post('/api/stripe-webhook', async (req, res) => {
+  const sig    = req.headers['stripe-signature'];
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  let event;
+  try {
+    event = secret
+      ? stripe.webhooks.constructEvent(req.body, sig, secret)
+      : JSON.parse(req.body); // no secret set — skip verification (dev only)
+  } catch (err) {
+    return res.status(400).send(`Webhook error: ${err.message}`);
+  }
+
+  if (event.type === 'payment_intent.succeeded') {
+    const pi = event.data.object;
+    try {
+      await db.execute(
+        "UPDATE bookings SET status = 'confirmed' WHERE payment_intent_id = ? AND status = 'pending'",
+        [pi.id]
+      );
+    } catch (err) {
+      console.error('Webhook DB error:', err.message);
+    }
+  }
+
+  res.json({ received: true });
 });
 
 // ── ADMIN MIDDLEWARE ──
