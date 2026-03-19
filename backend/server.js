@@ -353,5 +353,24 @@ function buildEmailHtml({ ref, name, location, service, duration, date, time, pr
 </body></html>`;
 }
 
+// ── POST /api/contact ──
+app.post('/api/contact', async (req, res) => {
+  const { name, email, subject, message } = req.body;
+  if (!name || !email || !message) return res.status(400).json({ error: 'Missing fields' });
+  try {
+    await mailer.sendMail({
+      from: `"Bangkok Thai Massage" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER,
+      replyTo: email,
+      subject: `Contacto: ${subject || 'Nova mensagem'} — ${name}`,
+      html: `<p><strong>De:</strong> ${name} (${email})</p><p><strong>Assunto:</strong> ${subject || '—'}</p><p><strong>Mensagem:</strong><br>${message.replace(/\n/g, '<br>')}</p>`
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Contact email error:', err.message);
+    res.status(500).json({ error: 'Failed to send' });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`BTM API running on port ${PORT}`));
