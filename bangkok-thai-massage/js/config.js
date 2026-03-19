@@ -9,7 +9,7 @@ window.BACKEND_URL = (function () {
   // Production: your Node.js API server
   // If backend is on the same server: return '' (empty = same origin)
   // If backend is on a subdomain: return 'https://api.bangkokthaimassage.pt'
-  return 'https://api.bangkokthaimassage.pt';
+  return ''; // same origin — backend serves frontend from same domain
 }());
 
 // Stripe publishable key — safe to expose in frontend

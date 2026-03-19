@@ -5,11 +5,17 @@ import Stripe from 'stripe';
 import mysql from 'mysql2/promise';
 import twilio from 'twilio';
 import nodemailer from 'nodemailer';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
 app.use(express.json());
+
+// Serve frontend static files
+app.use(express.static(join(__dirname, '../bangkok-thai-massage')));
 
 // ── CLIENTS ──
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
