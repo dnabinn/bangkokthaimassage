@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serviços — Bangkok Thai Massage</title>
+  <meta name="description" content="12 tipos de massagem tailandesa autêntica. Relaxamento, Tradicional Thai, Desportiva, Casais, Pedra Quente e muito mais.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    /* ── PAGE HERO ── */
+    .page-hero {
+      background: var(--green-deep);
+      padding: 10rem 2rem 5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(201,168,76,0.03) 50px, rgba(201,168,76,0.03) 51px);
+    }
+    .page-hero__inner { position: relative; z-index: 1; }
+    .page-hero__title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 300;
+      color: var(--white);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .page-hero__title em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+    .page-hero__sub {
+      font-size: 0.9rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.08em;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* ── SERVICES SECTION ── */
+    .svc-section {
+      background: var(--white);
+      padding: 5rem 0;
+    }
+    .svc-section__inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    .svc-section__header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 3rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .svc-section__note {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 300;
+      max-width: 320px;
+      text-align: right;
+      line-height: 1.7;
+    }
+
+    /* Filter tabs */
+    .svc-filters {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+    .svc-filter-btn {
+      padding: 0.45rem 1.1rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .svc-filter-btn:hover { border-color: var(--gold); color: var(--gold-dark, #8B6B3D); }
+    .svc-filter-btn.active {
+      background: var(--green-deep);
+      border-color: var(--green-deep);
+      color: var(--gold);
+    }
+
+    /* Service rows */
+    .svc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .svc-row {
+      background: var(--white);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      padding: 0;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+    .svc-row:hover { background: var(--cream); }
+    .svc-row.open { background: var(--cream); }
+
+    .svc-row__main {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1.5rem 2rem;
+    }
+    .svc-row__num {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      color: var(--border);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+      width: 24px;
+    }
+    .svc-row__info { flex: 1; }
+    .svc-row__name {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: var(--text-dark);
+      margin-bottom: 0.2rem;
+    }
+    .svc-row__tagline {
+      font-size: 0.78rem;
+      font-weight: 300;
+      color: var(--text-muted);
+    }
+    .svc-row__badge {
+      display: inline-block;
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.6rem;
+      border-radius: 10px;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    .badge-couples {
+      background: rgba(201,168,76,0.12);
+      color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.3);
+    }
+    .badge-premium {
+      background: rgba(26,71,40,0.08);
+      color: var(--green-mid);
+      border: 1px solid rgba(26,71,40,0.2);
+    }
+
+    .svc-row__right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1.5rem 2rem;
+      flex-shrink: 0;
+    }
+    .svc-row__from {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--green-mid);
+      white-space: nowrap;
+    }
+    .svc-row__chevron {
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .svc-row.open .svc-row__chevron {
+      background: var(--green-deep);
+      border-color: var(--green-deep);
+      color: var(--gold);
+      transform: rotate(180deg);
+    }
+
+    /* Expanded details */
+    .svc-detail {
+      display: none;
+      padding: 0 2rem 2rem 5rem;
+      background: var(--cream);
+      border-top: 1px solid var(--border);
+    }
+    .svc-detail.open { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+
+    .svc-detail__desc {
+      font-size: 0.87rem;
+      font-weight: 300;
+      color: var(--text-mid);
+      line-height: 1.9;
+      padding-top: 1.5rem;
+    }
+
+    .svc-detail__prices {
+      padding-top: 1.5rem;
+    }
+    .svc-detail__prices-title {
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+    .price-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.7rem 1rem;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+    .price-row:last-child { border-bottom: none; }
+    .price-row:hover { background: #FBF8F0; }
+    .price-row__dur {
+      font-size: 0.82rem;
+      font-weight: 400;
+      color: var(--text-mid);
+    }
+    .price-row__amt {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--green-mid);
+    }
+    .svc-detail__book {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+
+    /* DISCLAIMER */
+    .disclaimer {
+      background: var(--green-deep);
+      padding: 2.5rem 0;
+    }
+    .disclaimer__inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      gap: 3rem;
+      align-items: flex-start;
+    }
+    .disclaimer__block {
+      flex: 1;
+    }
+    .disclaimer__title {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.6rem;
+      display: block;
+    }
+    .disclaimer__text {
+      font-size: 0.78rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.8;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .svc-detail.open { grid-template-columns: 1fr; }
+      .svc-detail { padding: 0 1rem 1.5rem 1rem; }
+      .svc-row__main { padding: 1.25rem 1rem; gap: 1rem; }
+      .svc-row__right { padding: 1.25rem 1rem; }
+      .disclaimer__inner { flex-direction: column; gap: 1.5rem; }
+      .svc-section__header { flex-direction: column; align-items: flex-start; }
+      .svc-section__note { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav scrolled" id="nav">
+    <div class="nav__inner">
+      <a href="../index.html" class="nav__logo">
+        <span class="nav__logo-icon">✦</span>
+        <span class="nav__logo-text">Bangkok Thai Massage</span>
+      </a>
+      <ul class="nav__links" id="navLinks">
+        <li><a href="../index.html" class="nav__link" data-pt="Início" data-en="Home">Início</a></li>
+        <li><a href="servicos.html" class="nav__link active" data-pt="Serviços" data-en="Services">Serviços</a></li>
+        <li><a href="localizacoes.html" class="nav__link" data-pt="Localizações" data-en="Locations">Localizações</a></li>
+        <li><a href="sobre.html" class="nav__link" data-pt="Sobre" data-en="About">Sobre</a></li>
+        <li><a href="contacto.html" class="nav__link" data-pt="Contacto" data-en="Contact">Contacto</a></li>
+      </ul>
+      <div class="nav__actions">
+        <button class="lang-toggle" id="langToggle" onclick="toggleLang()">EN</button>
+        <a href="reservar.html" class="btn-book" data-pt="Reservar" data-en="Book Now">Reservar</a>
+        <button class="nav__burger" id="burger" onclick="toggleMenu()">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <section class="page-hero">
+    <div class="page-hero__inner">
+      <p class="section-eyebrow" data-pt="O Que Oferecemos" data-en="What We Offer">O Que Oferecemos</p>
+      <h1 class="page-hero__title">
+        <span data-pt="Os Nossos" data-en="Our">Os Nossos</span>
+        <em data-pt="Serviços" data-en="Services">Serviços</em>
+      </h1>
+      <p class="page-hero__sub" data-pt="12 tipos de massagem tailandesa autêntica." data-en="12 types of authentic Thai massage.">12 tipos de massagem tailandesa autêntica.</p>
+    </div>
+  </section>
+
+  <!-- SERVICES SECTION -->
+  <div class="svc-section">
+    <div class="svc-section__inner">
+      <div class="svc-section__header reveal">
+        <div class="svc-section__header-left">
+          <span class="section-eyebrow" data-pt="Todos os Serviços" data-en="All Services">Todos os Serviços</span>
+          <h2 class="section-title" style="margin-bottom:0" data-pt="Menu de Massagens" data-en="Massage Menu">Menu de Massagens</h2>
+        </div>
+        <p class="svc-section__note" data-pt="Todos os preços incluem IVA. Clique em cada serviço para ver os preços completos." data-en="All prices include VAT. Click each service to see full pricing.">Todos os preços incluem IVA. Clique em cada serviço para ver os preços completos.</p>
+      </div>
+
+      <div class="svc-filters" id="svc-filters">
+        <button class="svc-filter-btn active" onclick="filterSvc('all',this)" data-pt="Todos" data-en="All">Todos</button>
+        <button class="svc-filter-btn" onclick="filterSvc('corpo',this)" data-pt="Corpo Inteiro" data-en="Full Body">Corpo Inteiro</button>
+        <button class="svc-filter-btn" onclick="filterSvc('relaxamento',this)" data-pt="Relaxamento" data-en="Relaxation">Relaxamento</button>
+        <button class="svc-filter-btn" onclick="filterSvc('especializado',this)" data-pt="Especializado" data-en="Specialised">Especializado</button>
+        <button class="svc-filter-btn" onclick="filterSvc('casais',this)" data-pt="Casais" data-en="Couples">Casais</button>
+      </div>
+
+      <div class="svc-list" id="svc-list">
+
+        <!-- 01 Relaxamento -->
+        <div class="svc-row" data-cats="corpo relaxamento" onclick="toggleSvc(this)">
+          <div class="svc-row__main">
+            <span class="svc-row__num">01</span>
+            <div class="svc-row__info">
+              <div class="svc-row__name" data-pt="Massagem de Relaxamento" data-en="Relaxation Massage">Massagem de Relaxamento</div>
+              <div class="svc-row__tagline" data-pt="Técnicas calmantes · Alívio da tensão" data-en="Calming techniques · Tension relief">Técnicas calmantes · Alívio da tensão</div>
+            </div>
+          </div>
+          <div class="svc-row__right">
+            <span class="svc-row__from">desde €30</span>
+            <div class="svc-row__chevron">▾</div>
+          </div>
+          <div class="svc-detail">
+            <p class="svc-detail__desc" data-pt="Técnicas calmantes e fluídas que libertam a tensão acumulada e promovem um estado de serenidade profunda. Ideal para quem procura paz e descanso." data-en="Calming and flowing techniques that release accumulated tension and promote a state of deep serenity. Ideal for those seeking peace and rest.">Técnicas calmantes e fluídas que libertam a tensão acumulada e promovem um estado de serenidade profunda. Ideal para quem procura paz e descanso.</p>
+            <div class="svc-detail__prices">
+              <span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+              <div class="price-grid">
+                <div class="price-row"><span class="price-row__dur">30 min</span><span class="price-row__amt">€30</span></div>
+                <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€50</span></div>
+                <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€75</span></div>
+                <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€100</span></div>
+              </div>
+              <div class="svc-detail__book">
+                <a href="reservar.html?svc=relaxamento" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a>
+                <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline btn-sm" data-pt="WhatsApp" data-en="WhatsApp">WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 02 Tradicional Thai -->
+        <div class="svc-row" data-cats="corpo" onclick="toggleSvc(this)">
+          <div class="svc-row__main">
+            <span class="svc-row__num">02</span>
+            <div class="svc-row__info">
+              <div class="svc-row__name" data-pt="Massagem Tradicional Thai" data-en="Traditional Thai Massage">Massagem Tradicional Thai</div>
+              <div class="svc-row__tagline" data-pt="Acupressão · Alongamento · Trabalho energético" data-en="Acupressure · Stretching · Energy work">Acupressão · Alongamento · Trabalho energético</div>
+            </div>
+          </div>
+          <div class="svc-row__right">
+            <span class="svc-row__from">desde €50</span>
+            <div class="svc-row__chevron">▾</div>
+          </div>
+          <div class="svc-detail">
+            <p class="svc-detail__desc" data-pt="A arte milenar tailandesa que combina acupressão, alongamentos guiados e trabalho energético sobre linhas Sen. Revitaliza o corpo e equilibra a mente." data-en="The ancient Thai art combining acupressure, guided stretches and energy work on Sen lines. Revitalises the body and balances the mind.">A arte milenar tailandesa que combina acupressão, alongamentos guiados e trabalho energético sobre linhas Sen. Revitaliza o corpo e equilibra a mente.</p>
+            <div class="svc-detail__prices">
+              <span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+              <div class="price-grid">
+                <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€50</span></div>
+                <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€75</span></div>
+                <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€100</span></div>
+              </div>
+              <div class="svc-detail__book">
+                <a href="reservar.html?svc=tradicional" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a>
+                <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline btn-sm">WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 03 Desportiva -->
+        <div class="svc-row" data-cats="corpo" onclick="toggleSvc(this)">
+          <div class="svc-row__main">
+            <span class="svc-row__num">03</span>
+            <div class="svc-row__info">
+              <div class="svc-row__name" data-pt="Massagem Desportiva / Tecido Profundo" data-en="Sports / Deep Tissue Massage">Massagem Desportiva / Tecido Profundo</div>
+              <div class="svc-row__tagline" data-pt="Tensão muscular · Recuperação" data-en="Muscle tension · Recovery">Tensão muscular · Recuperação</div>
+            </div>
+          </div>
+          <div class="svc-row__right">
+            <span class="svc-row__from">desde €30</span>
+            <div class="svc-row__chevron">▾</div>
+          </div>
+          <div class="svc-detail">
+            <p class="svc-detail__desc" data-pt="Focada nos tecidos musculares mais profundos, alivia tensões crónicas e acelera a recuperação. Ideal para desportistas e quem tem tensão muscular persistente." data-en="Focused on deeper muscle tissues, relieves chronic tension and accelerates recovery. Ideal for athletes and those with persistent muscle tension.">Focada nos tecidos musculares mais profundos, alivia tensões crónicas e acelera a recuperação. Ideal para desportistas e quem tem tensão muscular persistente.</p>
+            <div class="svc-detail__prices">
+              <span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+              <div class="price-grid">
+                <div class="price-row"><span class="price-row__dur">30 min</span><span class="price-row__amt">€30</span></div>
+                <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€50</span></div>
+                <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€75</span></div>
+                <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€100</span></div>
+              </div>
+              <div class="svc-detail__book">
+                <a href="reservar.html?svc=desportiva" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a>
+                <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline btn-sm">WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 04 Facial -->
+        <div class="svc-row" data-cats="especializado" onclick="toggleSvc(this)">
+          <div class="svc-row__main">
+            <span class="svc-row__num">04</span>
+            <div class="svc-row__info">
+              <div class="svc-row__name" data-pt="Massagem Facial e Cabeça" data-en="Facial &amp; Head Massage">Massagem Facial e Cabeça</div>
+              <div class="svc-row__tagline" data-pt="Circulação · Rejuvenescimento" data-en="Circulation · Rejuvenation">Circulação · Rejuvenescimento</div>
+            </div>
+          </div>
+          <div class="svc-row__right">
+            <span class="svc-row__from">desde €30</span>
+            <div class="svc-row__chevron">▾</div>
+          </div>
+          <div class="svc-detail">
+            <p class="svc-detail__desc" data-pt="Estimula a circulação, alivia a tensão do couro cabeludo e rejuvenesce a expressão facial. Uma pausa de bem-estar do pescoço para o topo da cabeça." data-en="Stimulates circulation, relieves scalp tension and rejuvenates facial expression. A wellness break from the neck to the top of the head.">Estimula a circulação, alivia a tensão do couro cabeludo e rejuvenesce a expressão facial. Uma pausa de bem-estar do pescoço para o topo da cabeça.</p>
+            <div class="svc-detail__prices">
+              <span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+              <div class="price-grid">
+                <div class="price-row"><span class="price-row__dur">45 min</span><span class="price-row__amt">€30</span></div>
+                <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€50</span></div>
+              </div>
+              <div class="svc-detail__book">
+                <a href="reservar.html?svc=facial" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a>
+                <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline btn-sm">WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 05 Pés -->
+        <div class="svc-row" data-cats="relaxamento" onclick="toggleSvc(this)">
+          <div class="svc-row__main">
+            <span class="svc-row__num">05</span>
+            <div class="svc-row__info">
+              <div class="svc-row__name" data-pt="Massagem nos Pés" data-en="Foot Massage">Massagem nos Pés</div>
+              <div class="svc-row__tagline" data-pt="Reflexologia · Circulação" data-en="Reflexology · Circulation">Reflexologia · Circulação</div>
+            </div>
+          </div>
+          <div class="svc-row__right">
+            <span class="svc-row__from">desde €30</span>
+            <div class="svc-row__chevron">▾</div>
+          </div>
+          <div class="svc-detail">
+            <p class="svc-detail__desc" data-pt="Baseada na reflexologia, trabalha pontos do pé ligados a órgãos e sistemas do corpo. Melhora a circulação e proporciona profundo relaxamento." data-en="Based on reflexology, works on points of the foot connected to organs and body systems. Improves circulation and provides deep relaxation.">Baseada na reflexologia, trabalha pontos do pé ligados a órgãos e sistemas do corpo. Melhora a circulação e proporciona profundo relaxamento.</p>
+            <div class="svc-detail__prices">
+              <span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+              <div class="price-grid">
+                <div class="price-row"><span class="price-row__dur">30 min</span><span class="price-row__amt">€30</span></div>
+                <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€50</span></div>
+              </div>
+              <div class="svc-detail__book">
+                <a href="reservar.html?svc=pes" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a>
+                <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline btn-sm">WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 06 Cabeça Pescoço Ombro -->
+        <div class="svc-row" data-cats="relaxamento" onclick="toggleSvc(this)">
+          <div class="svc-row__main">
+            <span class="svc-row__num">06</span>
+            <div class="svc-row__info">
+              <div class="svc-row__name" data-pt="Cabeça, Pescoço e Ombro" data-en="Head, Neck &amp; Shoulder">Cabeça, Pescoço e Ombro</div>
+              <div class="svc-row__tagline" data-pt="Pressão suave · Tensão cervical" data-en="Gentle pressure · Cervical tension">Pressão suave · Tensão cervical</div>
+            </div>
+          </div>
+          <div class="svc-row__right">
+            <span class="svc-row__from">desde €30</span>
+            <div class="svc-row__chevron">▾</div>
+          </div>
+          <div class="svc-detail">
+            <p class="svc-detail__desc" data-pt="Combina pressão suave na cabeça, pescoço e ombros para libertar tensão cervical e aliviar dores de cabeça. Uma das sessões mais procuradas do dia a dia." data-en="Combines gentle pressure on the head, neck and shoulders to release cervical tension and relieve headaches. One of the most sought-after everyday sessions.">Combina pressão suave na cabeça, pescoço e ombros para libertar tensão cervical e aliviar dores de cabeça. Uma das sessões mais procuradas do dia a dia.</p>
+            <div class="svc-detail__prices">
+              <span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+              <div class="price-grid">
+                <div class="price-row"><span class="price-row__dur">30 min</span><span class="price-row__amt">€30</span></div>
+                <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€50</span></div>
+              </div>
+              <div class="svc-detail__book">
+                <a href="reservar.html?svc=cabeca" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a>
+                <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline btn-sm">WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 07 Ervas Quentes -->
+        <div class="svc-row" data-cats="corpo especializado" onclick="toggleSvc(this)">
+          <div class="svc-row__main">
+            <span class="svc-row__num">07</span>
+            <div class="svc-row__info">
+              <div class="svc-row__name">
+                <span data-pt="Massagem com Ervas Quentes" data-en="Hot Herb Massage">Massagem com Ervas Quentes</span>
+                <span class="svc-row__badge badge-premium" data-pt="Premium" data-en="Premium">Premium</span>
+              </div>
+              <div class="svc-row__tagline" data-pt="Ervas tailandesas · Calor terapêutico" data-en="Thai herbs · Therapeutic heat">Ervas tailandesas · Calor terapêutico</div>
+            </div>
+          </div>
+          <div class="svc-row__right">
+            <span class="svc-row__from">desde €85</span>
+            <div class="svc-row__chevron">▾</div>
+          </div>
+          <div class="svc-detail">
+            <p class="svc-detail__desc" data-pt="Compressas de ervas tailandesas aquecidas libertam óleos essenciais que penetram nos músculos, aliviando dores e reduzindo inflamação de forma natural." data-en="Heated Thai herb compresses release essential oils that penetrate muscles, relieving pain and reducing inflammation naturally.">Compressas de ervas tailandesas aquecidas libertam óleos essenciais que penetram nos músculos, aliviando dores e reduzindo inflamação de forma natural.</p>
+            <div class="svc-detail__prices">
+              <span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+              <div class="price-grid">
+                <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€85</span></div>
+                <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€110</span></div>
+              </div>
+              <div class="svc-detail__book">
+                <a href="reservar.html?svc=ervas" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a>
+                <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline btn-sm">WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 08 Óleo de Coco -->
+        <div class="svc-row" data-cats="corpo" onclick="toggleSvc(this)">
+          <div class="svc-row__main">
+            <span class="svc-row__num">08</span>
+            <div class="svc-row__info">
+              <div class="svc-row__name" data-pt="Massagem com Óleo de Coco" data-en="Coconut Oil Massage">Massagem com Óleo de Coco</div>
+              <div class="svc-row__tagline" data-pt="Hidratação · Aroma de coco" data-en="Hydration · Coconut aroma">Hidratação · Aroma de coco</div>
+            </div>
+          </div>
+          <div class="svc-row__right">
+            <span class="svc-row__from">desde €55</span>
+            <div class="svc-row__chevron">▾</div>
+          </div>
+          <div class="svc-detail">
+            <p class="svc-detail__desc" data-pt="Óleo de coco puro e nutritivo aplicado com movimentos longos e envolventes. Hidrata profundamente a pele enquanto relaxa o corpo e os sentidos." data-en="Pure and nourishing coconut oil applied with long, enveloping movements. Deeply moisturises the skin while relaxing the body and senses.">Óleo de coco puro e nutritivo aplicado com movimentos longos e envolventes. Hidrata profundamente a pele enquanto relaxa o corpo e os sentidos.</p>
+            <div class="svc-detail__prices">
+              <span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+              <div class="price-grid">
+                <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€55</span></div>
+                <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€80</span></div>
+                <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€105</span></div>
+              </div>
+              <div class="svc-detail__book">
+                <a href="reservar.html?svc=coco" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a>
+                <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline btn-sm">WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 09 Casais -->
+        <div class="svc-row" data-cats="casais" onclick="toggleSvc(this)">
+          <div class="svc-row__main">
+            <span class="svc-row__num">09</span>
+            <div class="svc-row__info">
+              <div class="svc-row__name">
+                <span data-pt="Massagem para Casais" data-en="Couples Massage">Massagem para Casais</span>
+                <span class="svc-row__badge badge-couples" data-pt="2 pessoas" data-en="2 people">2 pessoas</span>
+                <span class="svc-row__badge badge-premium" data-pt="Premium" data-en="Premium">Premium</span>
+              </div>
+              <div class="svc-row__tagline" data-pt="Relaxamento partilhado · 2 pessoas" data-en="Shared relaxation · 2 people">Relaxamento partilhado · 2 pessoas</div>
+            </div>
+          </div>
+          <div class="svc-row__right">
+            <span class="svc-row__from">desde €95</span>
+            <div class="svc-row__chevron">▾</div>
+          </div>
+          <div class="svc-detail">
+            <p class="svc-detail__desc" data-pt="Partilhe a experiência de relaxamento lado a lado. Dois terapeutas em sincronia, para que a conexão entre duas pessoas seja reforçada através do bem-estar." data-en="Share the relaxation experience side by side. Two therapists in sync, so the connection between two people is strengthened through well-being.">Partilhe a experiência de relaxamento lado a lado. Dois terapeutas em sincronia, para que a conexão entre duas pessoas seja reforçada através do bem-estar.</p>
+            <div class="svc-detail__prices">
+              <span class="svc-detail__prices-title" data-pt="Preços (2 pessoas)" data-en="Prices (2 people)">Preços (2 pessoas)</span>
+              <div class="price-grid">
+                <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€95</span></div>
+                <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€145</span></div>
+                <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€180</span></div>
+              </div>
+              <div class="svc-detail__book">
+                <a href="reservar.html?svc=casais" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a>
+                <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline btn-sm">WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10 Pedra Quente -->
+        <div class="svc-row" data-cats="relaxamento especializado" onclick="toggleSvc(this)">
+          <div class="svc-row__main">
+            <span class="svc-row__num">10</span>
+            <div class="svc-row__info">
+              <div class="svc-row__name">
+                <span data-pt="Pedra Quente" data-en="Hot Stone">Pedra Quente</span>
+                <span class="svc-row__badge badge-premium" data-pt="Premium" data-en="Premium">Premium</span>
+              </div>
+              <div class="svc-row__tagline" data-pt="Pedras basálticas · Pressão suave" data-en="Basalt stones · Gentle pressure">Pedras basálticas · Pressão suave</div>
+            </div>
+          </div>
+          <div class="svc-row__right">
+            <span class="svc-row__from">desde €85</span>
+            <div class="svc-row__chevron">▾</div>
+          </div>
+          <div class="svc-detail">
+            <p class="svc-detail__desc" data-pt="Pedras basálticas polidas e aquecidas são posicionadas em pontos-chave do corpo para libertar tensão muscular profunda e promover equilíbrio energético." data-en="Polished heated basalt stones are placed at key points on the body to release deep muscle tension and promote energetic balance.">Pedras basálticas polidas e aquecidas são posicionadas em pontos-chave do corpo para libertar tensão muscular profunda e promover equilíbrio energético.</p>
+            <div class="svc-detail__prices">
+              <span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+              <div class="price-grid">
+                <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€85</span></div>
+                <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€110</span></div>
+              </div>
+              <div class="svc-detail__book">
+                <a href="reservar.html?svc=pedra" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a>
+                <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline btn-sm">WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 11 Combinada -->
+        <div class="svc-row" data-cats="corpo especializado" onclick="toggleSvc(this)">
+          <div class="svc-row__main">
+            <span class="svc-row__num">11</span>
+            <div class="svc-row__info">
+              <div class="svc-row__name" data-pt="Massagem Combinada" data-en="Combined Massage">Massagem Combinada</div>
+              <div class="svc-row__tagline" data-pt="Thai + óleo + acupressão" data-en="Thai + oil + acupressure">Thai + óleo + acupressão</div>
+            </div>
+          </div>
+          <div class="svc-row__right">
+            <span class="svc-row__from">desde €55</span>
+            <div class="svc-row__chevron">▾</div>
+          </div>
+          <div class="svc-detail">
+            <p class="svc-detail__desc" data-pt="O melhor de vários mundos: técnica Thai, óleo aromático e acupressão trabalhados em sequência para uma experiência completa de corpo e mente." data-en="The best of several worlds: Thai technique, aromatic oil and acupressure worked in sequence for a complete body and mind experience.">O melhor de vários mundos: técnica Thai, óleo aromático e acupressão trabalhados em sequência para uma experiência completa de corpo e mente.</p>
+            <div class="svc-detail__prices">
+              <span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+              <div class="price-grid">
+                <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€55</span></div>
+                <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€80</span></div>
+                <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€105</span></div>
+              </div>
+              <div class="svc-detail__book">
+                <a href="reservar.html?svc=combinada" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a>
+                <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline btn-sm">WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 12 Óleo Quente -->
+        <div class="svc-row" data-cats="corpo especializado" onclick="toggleSvc(this)">
+          <div class="svc-row__main">
+            <span class="svc-row__num">12</span>
+            <div class="svc-row__info">
+              <div class="svc-row__name" data-pt="Óleo Quente com Aroma Perfume" data-en="Warm Aromatherapy Oil">Óleo Quente com Aroma Perfume</div>
+              <div class="svc-row__tagline" data-pt="Aromaterapia · Óleo morno" data-en="Aromatherapy · Warm oil">Aromaterapia · Óleo morno</div>
+            </div>
+          </div>
+          <div class="svc-row__right">
+            <span class="svc-row__from">desde €55</span>
+            <div class="svc-row__chevron">▾</div>
+          </div>
+          <div class="svc-detail">
+            <p class="svc-detail__desc" data-pt="Óleos aromáticos cuidadosamente selecionados e aplicados a temperatura morna. Uma experiência sensorial que dissolve a tensão e eleva o humor." data-en="Carefully selected aromatic oils applied at warm temperature. A sensory experience that dissolves tension and lifts the mood.">Óleos aromáticos cuidadosamente selecionados e aplicados a temperatura morna. Uma experiência sensorial que dissolve a tensão e eleva o humor.</p>
+            <div class="svc-detail__prices">
+              <span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+              <div class="price-grid">
+                <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€55</span></div>
+                <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€80</span></div>
+                <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€105</span></div>
+              </div>
+              <div class="svc-detail__book">
+                <a href="reservar.html?svc=oleo" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a>
+                <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline btn-sm">WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end svc-list -->
+    </div>
+  </div><!-- end svc-section -->
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">
+    <div class="disclaimer__inner">
+      <div class="disclaimer__block">
+        <span class="disclaimer__title" data-pt="Informação Importante" data-en="Important Information">Informação Importante</span>
+        <p class="disclaimer__text" data-pt="Realizamos apenas massagens terapêuticas e de relaxamento. Não oferecemos qualquer tipo de serviço sexual. Reservamo-nos o direito de recusar atendimento em caso de comportamento inadequado." data-en="We only perform therapeutic and relaxation massages. We do not offer any type of sexual service. We reserve the right to refuse service in case of inappropriate behaviour.">Realizamos apenas massagens terapêuticas e de relaxamento. Não oferecemos qualquer tipo de serviço sexual. Reservamo-nos o direito de recusar atendimento em caso de comportamento inadequado.</p>
+      </div>
+      <div class="disclaimer__block">
+        <span class="disclaimer__title" data-pt="Condições de Saúde" data-en="Health Conditions">Condições de Saúde</span>
+        <p class="disclaimer__text" data-pt="Por favor informe-nos antes da sessão caso tenha: diabetes, pressão arterial elevada, problemas cardíacos ou lesões recentes. A sua segurança é a nossa prioridade." data-en="Please inform us before the session if you have: diabetes, high blood pressure, heart problems or recent injuries. Your safety is our priority.">Por favor informe-nos antes da sessão caso tenha: diabetes, pressão arterial elevada, problemas cardíacos ou lesões recentes. A sua segurança é a nossa prioridade.</p>
+      </div>
+      <div class="disclaimer__block">
+        <span class="disclaimer__title" data-pt="Preços" data-en="Pricing">Preços</span>
+        <p class="disclaimer__text" data-pt="Todos os preços indicados incluem IVA à taxa legal em vigor. É recomendada marcação prévia para garantir disponibilidade." data-en="All prices shown include VAT at the current legal rate. Advance booking is recommended to ensure availability.">Todos os preços indicados incluem IVA à taxa legal em vigor. É recomendada marcação prévia para garantir disponibilidade.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <div class="footer__logo"><span class="nav__logo-icon">✦</span><span>Bangkok Thai Massage</span></div>
+        <p class="footer__tagline" data-pt="Relaxamento Autêntico Tailandês" data-en="Authentic Thai Relaxation">Relaxamento Autêntico Tailandês</p>
+        <div class="footer__social">
+          <a href="https://www.facebook.com/bangkokthaimassage.pt" target="_blank" class="footer__soc-link" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+          <a href="https://instagram.com/bangkokthaimassage.pt" target="_blank" class="footer__soc-link" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title" data-pt="Navegação" data-en="Navigation">Navegação</h4>
+        <ul class="footer__links">
+          <li><a href="../index.html" data-pt="Início" data-en="Home">Início</a></li>
+          <li><a href="servicos.html" data-pt="Serviços" data-en="Services">Serviços</a></li>
+          <li><a href="localizacoes.html" data-pt="Localizações" data-en="Locations">Localizações</a></li>
+          <li><a href="sobre.html" data-pt="Sobre Nós" data-en="About Us">Sobre Nós</a></li>
+          <li><a href="contacto.html" data-pt="Contacto" data-en="Contact">Contacto</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Saldanha</h4>
+        <p class="footer__addr">R. Gomes Freire 223C<br>1150-178 Lisboa</p>
+        <a href="tel:+351925693355" class="footer__phone">925 693 355</a>
+        <p class="footer__hours" data-pt="Seg–Dom: 10h–21h" data-en="Mon–Sun: 10am–9pm">Seg–Dom: 10h–21h</p>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Costa da Caparica</h4>
+        <p class="footer__addr">R. dos Pescadores 5<br>2825-280 Costa da Caparica</p>
+        <a href="tel:+351932141557" class="footer__phone">932 141 557</a>
+        <p class="footer__hours" data-pt="Seg–Sáb: 10h–21h · Dom: 11h–21h" data-en="Mon–Sat: 10am–9pm · Sun: 11am–9pm">Seg–Sáb: 10h–21h · Dom: 11h–21h</p>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p data-pt="© 2025 Bangkok Thai Massage. Todos os direitos reservados. Todos os preços incluem IVA." data-en="© 2025 Bangkok Thai Massage. All rights reserved. All prices include VAT.">© 2025 Bangkok Thai Massage. Todos os direitos reservados. Todos os preços incluem IVA.</p>
+    </div>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    // Toggle service row
+    function toggleSvc(row) {
+      const detail = row.querySelector('.svc-detail');
+      const isOpen = row.classList.contains('open');
+      // close all
+      document.querySelectorAll('#svc-list .svc-row.open').forEach(r => {
+        r.classList.remove('open');
+        r.querySelector('.svc-detail').classList.remove('open');
+      });
+      if (!isOpen) {
+        row.classList.add('open');
+        detail.classList.add('open');
+      }
+    }
+
+    // Filter services — supports space-separated data-cats
+    function filterSvc(cat, btn) {
+      document.querySelectorAll('#svc-filters .svc-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('#svc-list .svc-row').forEach(row => {
+        const cats = (row.dataset.cats || '').split(' ');
+        if (cat === 'all' || cats.includes(cat)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+          row.classList.remove('open');
+          row.querySelector('.svc-detail').classList.remove('open');
+        }
+      });
+    }
+  </script>
+</body>
+</html>

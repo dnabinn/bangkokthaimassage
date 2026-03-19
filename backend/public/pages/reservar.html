@@ -202,11 +202,16 @@
     .svc-pick-row {
       background: var(--white);
       display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .svc-pick-row__top {
+      display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 1.1rem 1.5rem;
-      cursor: pointer;
-      transition: var(--transition);
       gap: 1rem;
     }
     .svc-pick-row:hover { background: var(--cream); }
@@ -254,17 +259,15 @@
       border-radius: 50%;
       background: white;
     }
-
-    /* Duration picker */
-    .dur-picker {
-      margin-top: 1.5rem;
-      padding: 1.25rem 1.5rem;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+    .svc-pick-row__durations {
+      display: none;
+      padding: 0.85rem 1.5rem 1rem 3.5rem;
+      border-top: 1px solid rgba(26,71,40,0.08);
+      background: rgba(244,250,246,0.6);
     }
-    .dur-picker__label {
-      font-size: 0.65rem;
+    .svc-pick-row.selected .svc-pick-row__durations { display: block; }
+    .svc-pick-row__dur-label {
+      font-size: 0.62rem;
       font-weight: 500;
       letter-spacing: 0.2em;
       text-transform: uppercase;
@@ -862,10 +865,6 @@
         <h2 class="step-title" data-pt="Escolha o serviço" data-en="Choose your service">Escolha o serviço</h2>
         <p class="step-sub" data-pt="Selecione a massagem pretendida e a duração." data-en="Select the massage you'd like and the duration.">Selecione a massagem pretendida e a duração.</p>
         <div class="svc-pick-list" id="svcList"></div>
-        <div class="dur-picker" id="durPicker" style="display:none">
-          <span class="dur-picker__label" data-pt="Duração" data-en="Duration">Duração</span>
-          <div class="dur-options" id="durOptions"></div>
-        </div>
         <div class="step-nav">
           <button class="btn-back-step" onclick="goStep(1)">← <span data-pt="Voltar" data-en="Back">Voltar</span></button>
           <button class="btn-next" id="btn2" disabled onclick="goStep(3)" data-pt="Continuar →" data-en="Continue →">Continuar →</button>
@@ -1135,38 +1134,38 @@
     const isEn = currentLang === 'en';
     list.innerHTML = svcs.map((s, i) => `
       <div class="svc-pick-row" id="svc-${s.id}" onclick="selectService('${s.id}', ${i})">
-        <div class="svc-pick-row__radio"></div>
-        <div class="svc-pick-row__info">
-          <div class="svc-pick-row__name">${isEn ? s.nameEn : s.name}</div>
-          <div class="svc-pick-row__tag">${isEn ? s.tagEn : s.tag}</div>
+        <div class="svc-pick-row__top">
+          <div class="svc-pick-row__radio"></div>
+          <div class="svc-pick-row__info">
+            <div class="svc-pick-row__name">${isEn ? s.nameEn : s.name}</div>
+            <div class="svc-pick-row__tag">${isEn ? s.tagEn : s.tag}</div>
+          </div>
+          <span class="svc-pick-row__price">€${s.durations[0].p}+</span>
         </div>
-        <span class="svc-pick-row__price">€${s.durations[0].p}+</span>
+        <div class="svc-pick-row__durations">
+          <span class="svc-pick-row__dur-label" data-pt="Duração" data-en="Duration">${isEn ? 'Duration' : 'Duração'}</span>
+          <div class="dur-options">
+            ${s.durations.map(d => `
+              <button class="dur-btn" onclick="event.stopPropagation(); selectDuration(${d.m}, ${d.p}, this)">
+                ${d.m} min<span>€${d.p}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
       </div>
     `).join('');
-    document.getElementById('durPicker').style.display = 'none';
     document.getElementById('btn2').disabled = true;
   }
 
   function selectService(id, idx) {
     document.querySelectorAll('.svc-pick-row').forEach(r => r.classList.remove('selected'));
+    document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('selected'));
     document.getElementById('svc-' + id).classList.add('selected');
     const svc = SERVICES[B.location][idx];
     B.service = svc;
     B.duration = null; B.price = null;
-    renderDurations(svc);
     document.getElementById('btn2').disabled = true;
     updateSidebar();
-  }
-
-  function renderDurations(svc) {
-    const picker = document.getElementById('durPicker');
-    const opts = document.getElementById('durOptions');
-    picker.style.display = 'block';
-    opts.innerHTML = svc.durations.map(d => `
-      <button class="dur-btn" onclick="selectDuration(${d.m}, ${d.p}, this)">
-        ${d.m} min<span>€${d.p}</span>
-      </button>
-    `).join('');
   }
 
   function selectDuration(min, price, el) {

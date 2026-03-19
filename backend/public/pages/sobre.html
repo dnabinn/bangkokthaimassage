@@ -1,1 +1,549 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Sobre — Bangkok Thai Massage</title><meta http-equiv="refresh" content="0;url=../index.html"></head><body></body></html>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sobre Nós — Bangkok Thai Massage</title>
+  <meta name="description" content="A nossa história, os nossos valores e a nossa paixão pelo bem-estar tailandês autêntico em Lisboa e Costa da Caparica.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    /* ── PAGE HERO ── */
+    .page-hero {
+      background: var(--green-deep);
+      padding: 10rem 2rem 5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(201,168,76,0.03) 50px, rgba(201,168,76,0.03) 51px);
+    }
+    .page-hero__inner { position: relative; z-index: 1; }
+    .page-hero__title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 300;
+      color: var(--white);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .page-hero__title em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+    .page-hero__sub {
+      font-size: 0.9rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.08em;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* ── STORY SECTION ── */
+    .story-section {
+      background: var(--cream);
+      padding: 6rem 0;
+    }
+    .story-section__inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+    .story-section__body {
+      font-size: 0.93rem;
+      font-weight: 300;
+      color: var(--text-mid);
+      line-height: 1.9;
+      margin-bottom: 1.25rem;
+    }
+    .story-section__stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
+    .stat-block {
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--white);
+    }
+    .stat-block__num {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 300;
+      color: var(--green-mid);
+      line-height: 1;
+      margin-bottom: 0.35rem;
+    }
+    .stat-block__label {
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .story-section__image {
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      aspect-ratio: 4/5;
+    }
+    .story-section__image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ── VALUES SECTION ── */
+    .values-section {
+      background: var(--white);
+      padding: 6rem 0;
+    }
+    .values-section__inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    .values-section__header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+    .values-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .value-card {
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--cream);
+      transition: border-color var(--transition), background var(--transition);
+    }
+    .value-card:hover {
+      border-color: rgba(201,168,76,0.4);
+      background: var(--white);
+    }
+    .value-card__icon {
+      font-size: 1.1rem;
+      color: var(--gold);
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .value-card__title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--text-dark);
+      margin-bottom: 0.25rem;
+    }
+    .value-card__title-en {
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.85rem;
+      display: block;
+    }
+    .value-card__desc {
+      font-size: 0.85rem;
+      font-weight: 300;
+      color: var(--text-mid);
+      line-height: 1.8;
+    }
+
+    /* ── LOCATIONS SECTION ── */
+    .locs-section {
+      background: var(--cream);
+      padding: 6rem 0;
+    }
+    .locs-section__inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    .locs-section__header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .locs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .loc-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .loc-card__header {
+      background: var(--green-deep);
+      padding: 1.75rem 2rem;
+      position: relative;
+    }
+    .loc-card__header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(45deg, transparent, transparent 30px, rgba(201,168,76,0.04) 30px, rgba(201,168,76,0.04) 31px);
+    }
+    .loc-card__city {
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 0.4rem;
+      position: relative;
+      z-index: 1;
+    }
+    .loc-card__name {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 300;
+      color: var(--white);
+      position: relative;
+      z-index: 1;
+    }
+    .loc-card__body {
+      padding: 2rem;
+    }
+    .loc-card__info-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+    .loc-card__info-label {
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      padding-top: 0.1rem;
+      flex-shrink: 0;
+      width: 68px;
+    }
+    .loc-card__info-val {
+      font-size: 0.85rem;
+      font-weight: 300;
+      color: var(--text-mid);
+      line-height: 1.6;
+    }
+    .loc-card__info-val a {
+      color: var(--green-mid);
+      transition: color var(--transition);
+    }
+    .loc-card__info-val a:hover { color: var(--gold); }
+    .loc-card__divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.25rem 0;
+    }
+    .loc-card__actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    /* ── CTA BANNER ── */
+    .cta-banner {
+      background: var(--green-deep);
+      padding: 5rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(201,168,76,0.03) 50px, rgba(201,168,76,0.03) 51px);
+    }
+    .cta-banner__inner {
+      position: relative;
+      z-index: 1;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .cta-banner__title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 300;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+    .cta-banner__title em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+    .cta-banner__sub {
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 2rem;
+      letter-spacing: 0.05em;
+    }
+    .cta-banner__actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .story-section__inner { grid-template-columns: 1fr; gap: 2.5rem; }
+      .story-section__image { order: -1; aspect-ratio: 16/9; }
+      .values-grid { grid-template-columns: 1fr; }
+      .locs-grid { grid-template-columns: 1fr; }
+      .story-section__stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav scrolled" id="nav">
+    <div class="nav__inner">
+      <a href="../index.html" class="nav__logo">
+        <span class="nav__logo-icon">✦</span>
+        <span class="nav__logo-text">Bangkok Thai Massage</span>
+      </a>
+      <ul class="nav__links" id="navLinks">
+        <li><a href="../index.html" class="nav__link" data-pt="Início" data-en="Home">Início</a></li>
+        <li><a href="servicos.html" class="nav__link" data-pt="Serviços" data-en="Services">Serviços</a></li>
+        <li><a href="localizacoes.html" class="nav__link" data-pt="Localizações" data-en="Locations">Localizações</a></li>
+        <li><a href="sobre.html" class="nav__link active" data-pt="Sobre" data-en="About">Sobre</a></li>
+        <li><a href="contacto.html" class="nav__link" data-pt="Contacto" data-en="Contact">Contacto</a></li>
+      </ul>
+      <div class="nav__actions">
+        <button class="lang-toggle" id="langToggle" onclick="toggleLang()">EN</button>
+        <a href="reservar.html" class="btn-book" data-pt="Reservar" data-en="Book Now">Reservar</a>
+        <button class="nav__burger" id="burger" onclick="toggleMenu()">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <section class="page-hero">
+    <div class="page-hero__inner">
+      <p class="section-eyebrow" data-pt="Quem Somos" data-en="Who We Are">Quem Somos</p>
+      <h1 class="page-hero__title">
+        <span data-pt="Sobre" data-en="About">Sobre</span>
+        <em data-pt="Nós" data-en="Us">Nós</em>
+      </h1>
+      <p class="page-hero__sub" data-pt="A nossa história, os nossos valores, a nossa paixão." data-en="Our story, our values, our passion.">A nossa história, os nossos valores, a nossa paixão.</p>
+    </div>
+  </section>
+
+  <!-- STORY SECTION -->
+  <section class="story-section">
+    <div class="story-section__inner reveal">
+      <div class="story-section__content">
+        <span class="section-eyebrow" data-pt="A Nossa História" data-en="Our Story">A Nossa História</span>
+        <h2 class="section-title" data-pt="Tradição Thai,<br>alma portuguesa" data-en="Thai tradition,<br>Portuguese soul">Tradição Thai,<br>alma portuguesa</h2>
+        <p class="story-section__body" data-pt="O Bangkok Thai Massage nasceu da paixão pelas artes de cura tailandesas e do desejo de trazer autenticidade a Lisboa. Os nossos terapeutas tailandeses combinam técnicas milenares com um ambiente acolhedor, criando uma experiência única de bem-estar." data-en="Bangkok Thai Massage was born from a passion for Thai healing arts and the desire to bring authenticity to Lisbon. Our Thai therapists combine ancient techniques with a welcoming atmosphere, creating a unique wellness experience.">O Bangkok Thai Massage nasceu da paixão pelas artes de cura tailandesas e do desejo de trazer autenticidade a Lisboa. Os nossos terapeutas tailandeses combinam técnicas milenares com um ambiente acolhedor, criando uma experiência única de bem-estar.</p>
+        <p class="story-section__body" data-pt="Abrimos a nossa primeira localização em Saldanha, no coração de Lisboa, e expandimos para Costa da Caparica — trazendo o autêntico bem-estar tailandês a duas das zonas mais vibrantes de Portugal." data-en="We opened our first location in Saldanha, in the heart of Lisbon, and expanded to Costa da Caparica — bringing authentic Thai wellness to two of Portugal's most vibrant areas.">Abrimos a nossa primeira localização em Saldanha, no coração de Lisboa, e expandimos para Costa da Caparica — trazendo o autêntico bem-estar tailandês a duas das zonas mais vibrantes de Portugal.</p>
+        <div class="story-section__stats">
+          <div class="stat-block">
+            <div class="stat-block__num">167+</div>
+            <div class="stat-block__label" data-pt="Clientes Satisfeitos" data-en="Happy Clients">Clientes Satisfeitos</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-block__num">12</div>
+            <div class="stat-block__label" data-pt="Tipos de Massagem" data-en="Massage Types">Tipos de Massagem</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-block__num">2</div>
+            <div class="stat-block__label" data-pt="Localizações" data-en="Locations">Localizações</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-block__num">5.0</div>
+            <div class="stat-block__label" data-pt="Google Reviews" data-en="Google Reviews">Google Reviews</div>
+          </div>
+        </div>
+      </div>
+      <div class="story-section__image">
+        <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80" alt="Bangkok Thai Massage" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <!-- VALUES SECTION -->
+  <section class="values-section">
+    <div class="values-section__inner">
+      <div class="values-section__header reveal">
+        <span class="section-eyebrow" data-pt="Os Nossos Valores" data-en="Our Values">Os Nossos Valores</span>
+        <h2 class="section-title" data-pt="O que nos define" data-en="What defines us">O que nos define</h2>
+      </div>
+      <div class="values-grid reveal">
+        <div class="value-card">
+          <span class="value-card__icon">✦</span>
+          <div class="value-card__title" data-pt="Terapeutas Certificados" data-en="Certified Therapists">Terapeutas Certificados</div>
+          <span class="value-card__title-en">Certified Therapists</span>
+          <p class="value-card__desc" data-pt="Todos os nossos terapeutas são formados em técnicas tailandesas tradicionais, com foco na segurança e excelência." data-en="All our therapists are trained in traditional Thai techniques, with a focus on safety and excellence.">Todos os nossos terapeutas são formados em técnicas tailandesas tradicionais, com foco na segurança e excelência.</p>
+        </div>
+        <div class="value-card">
+          <span class="value-card__icon">✦</span>
+          <div class="value-card__title" data-pt="Técnicas Autênticas" data-en="Authentic Techniques">Técnicas Autênticas</div>
+          <span class="value-card__title-en">Authentic Techniques</span>
+          <p class="value-card__desc" data-pt="Da massagem tradicional Thai às pedras quentes — métodos ancestrais preservados na sua forma mais pura." data-en="From traditional Thai massage to hot stones — ancestral methods preserved in their purest form.">Da massagem tradicional Thai às pedras quentes — métodos ancestrais preservados na sua forma mais pura.</p>
+        </div>
+        <div class="value-card">
+          <span class="value-card__icon">✦</span>
+          <div class="value-card__title" data-pt="Ambiente Sereno" data-en="Serene Atmosphere">Ambiente Sereno</div>
+          <span class="value-card__title-en">Serene Atmosphere</span>
+          <p class="value-card__desc" data-pt="Um espaço cuidadosamente concebido para proporcionar paz e tranquilidade desde o momento em que entra." data-en="A carefully designed space to provide peace and tranquillity from the moment you enter.">Um espaço cuidadosamente concebido para proporcionar paz e tranquilidade desde o momento em que entra.</p>
+        </div>
+        <div class="value-card">
+          <span class="value-card__icon">✦</span>
+          <div class="value-card__title" data-pt="Satisfação Garantida" data-en="Satisfaction Guaranteed">Satisfação Garantida</div>
+          <span class="value-card__title-en">Satisfaction Guaranteed</span>
+          <p class="value-card__desc" data-pt="A sua experiência é a nossa prioridade. Cada sessão é personalizada para as suas necessidades específicas." data-en="Your experience is our priority. Each session is personalised to your specific needs.">A sua experiência é a nossa prioridade. Cada sessão é personalizada para as suas necessidades específicas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOCATIONS SECTION -->
+  <section class="locs-section">
+    <div class="locs-section__inner">
+      <div class="locs-section__header reveal">
+        <span class="section-eyebrow" data-pt="Onde Estamos" data-en="Where We Are">Onde Estamos</span>
+        <h2 class="section-title" data-pt="As Nossas Localizações" data-en="Our Locations">As Nossas Localizações</h2>
+      </div>
+      <div class="locs-grid reveal">
+
+        <!-- Saldanha -->
+        <div class="loc-card">
+          <div class="loc-card__header">
+            <span class="loc-card__city" data-pt="Lisboa" data-en="Lisbon">Lisboa</span>
+            <div class="loc-card__name">Saldanha</div>
+          </div>
+          <div class="loc-card__body">
+            <div class="loc-card__info-row">
+              <span class="loc-card__info-label" data-pt="Morada" data-en="Address">Morada</span>
+              <span class="loc-card__info-val">R. Gomes Freire 223C<br>1150-178 Lisboa</span>
+            </div>
+            <div class="loc-card__info-row">
+              <span class="loc-card__info-label" data-pt="Horário" data-en="Hours">Horário</span>
+              <span class="loc-card__info-val" data-pt="Seg–Dom: 10h–21h" data-en="Mon–Sun: 10am–9pm">Seg–Dom: 10h–21h</span>
+            </div>
+            <div class="loc-card__info-row">
+              <span class="loc-card__info-label" data-pt="Telefone" data-en="Phone">Telefone</span>
+              <span class="loc-card__info-val"><a href="tel:+351925693355">925 693 355</a></span>
+            </div>
+            <hr class="loc-card__divider">
+            <div class="loc-card__actions">
+              <a href="reservar.html?loc=saldanha" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book Now">Reservar</a>
+              <a href="https://maps.google.com/?q=R.+Gomes+Freire+223C+1150-178+Lisboa" target="_blank" class="btn-outline btn-sm" data-pt="Ver no mapa" data-en="View on map">Ver no mapa</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Costa da Caparica -->
+        <div class="loc-card">
+          <div class="loc-card__header">
+            <span class="loc-card__city" data-pt="Setúbal" data-en="Setúbal">Setúbal</span>
+            <div class="loc-card__name">Costa da Caparica</div>
+          </div>
+          <div class="loc-card__body">
+            <div class="loc-card__info-row">
+              <span class="loc-card__info-label" data-pt="Morada" data-en="Address">Morada</span>
+              <span class="loc-card__info-val">R. dos Pescadores 5<br>2825-280 Costa da Caparica</span>
+            </div>
+            <div class="loc-card__info-row">
+              <span class="loc-card__info-label" data-pt="Horário" data-en="Hours">Horário</span>
+              <span class="loc-card__info-val" data-pt="Seg–Sáb: 10h–21h · Dom: 11h–21h" data-en="Mon–Sat: 10am–9pm · Sun: 11am–9pm">Seg–Sáb: 10h–21h · Dom: 11h–21h</span>
+            </div>
+            <div class="loc-card__info-row">
+              <span class="loc-card__info-label" data-pt="Telefone" data-en="Phone">Telefone</span>
+              <span class="loc-card__info-val"><a href="tel:+351932141557">932 141 557</a></span>
+            </div>
+            <hr class="loc-card__divider">
+            <div class="loc-card__actions">
+              <a href="reservar.html?loc=caparica" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book Now">Reservar</a>
+              <a href="https://maps.google.com/?q=R.+dos+Pescadores+5+2825-280+Costa+da+Caparica" target="_blank" class="btn-outline btn-sm" data-pt="Ver no mapa" data-en="View on map">Ver no mapa</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="cta-banner">
+    <div class="cta-banner__inner">
+      <h2 class="cta-banner__title">
+        <span data-pt="Pronto para se" data-en="Ready to">Pronto para se</span>
+        <em data-pt="relaxar?" data-en="relax?">relaxar?</em>
+      </h2>
+      <p class="cta-banner__sub" data-pt="Reserve a sua sessão hoje." data-en="Book your session today.">Reserve a sua sessão hoje.</p>
+      <div class="cta-banner__actions">
+        <a href="reservar.html" class="btn-primary" data-pt="Reservar Sessão" data-en="Book a Session">Reservar Sessão</a>
+        <a href="https://wa.me/+351925693355" target="_blank" class="btn-outline" style="color:var(--white);border-color:rgba(255,255,255,0.3);" data-pt="WhatsApp" data-en="WhatsApp">WhatsApp</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <div class="footer__logo"><span class="nav__logo-icon">✦</span><span>Bangkok Thai Massage</span></div>
+        <p class="footer__tagline" data-pt="Relaxamento Autêntico Tailandês" data-en="Authentic Thai Relaxation">Relaxamento Autêntico Tailandês</p>
+        <div class="footer__social">
+          <a href="https://www.facebook.com/bangkokthaimassage.pt" target="_blank" class="footer__soc-link" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+          <a href="https://instagram.com/bangkokthaimassage.pt" target="_blank" class="footer__soc-link" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title" data-pt="Navegação" data-en="Navigation">Navegação</h4>
+        <ul class="footer__links">
+          <li><a href="../index.html" data-pt="Início" data-en="Home">Início</a></li>
+          <li><a href="servicos.html" data-pt="Serviços" data-en="Services">Serviços</a></li>
+          <li><a href="localizacoes.html" data-pt="Localizações" data-en="Locations">Localizações</a></li>
+          <li><a href="sobre.html" data-pt="Sobre Nós" data-en="About Us">Sobre Nós</a></li>
+          <li><a href="contacto.html" data-pt="Contacto" data-en="Contact">Contacto</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Saldanha</h4>
+        <p class="footer__addr">R. Gomes Freire 223C<br>1150-178 Lisboa</p>
+        <a href="tel:+351925693355" class="footer__phone">925 693 355</a>
+        <p class="footer__hours" data-pt="Seg–Dom: 10h–21h" data-en="Mon–Sun: 10am–9pm">Seg–Dom: 10h–21h</p>
+      </div>
+      <div class="footer__col">
+        <h4 class="footer__col-title">Costa da Caparica</h4>
+        <p class="footer__addr">R. dos Pescadores 5<br>2825-280 Costa da Caparica</p>
+        <a href="tel:+351932141557" class="footer__phone">932 141 557</a>
+        <p class="footer__hours" data-pt="Seg–Sáb: 10h–21h · Dom: 11h–21h" data-en="Mon–Sat: 10am–9pm · Sun: 11am–9pm">Seg–Sáb: 10h–21h · Dom: 11h–21h</p>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p data-pt="© 2025 Bangkok Thai Massage. Todos os direitos reservados. Todos os preços incluem IVA." data-en="© 2025 Bangkok Thai Massage. All rights reserved. All prices include VAT.">© 2025 Bangkok Thai Massage. Todos os direitos reservados. Todos os preços incluem IVA.</p>
+    </div>
+  </footer>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>
