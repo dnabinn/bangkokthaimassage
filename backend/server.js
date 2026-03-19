@@ -175,8 +175,18 @@ app.post('/api/book', async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 
-  // 3. Twilio SMS (non-blocking — booking is already saved)
-  const toPhone = phone.startsWith('+') ? phone : '+351' + phone.replace(/\s/g, '');
+  // 3 & 4. SMS + Email — only for confirmed payments (not MB WAY pending)
+  if (payMethod !== 'mbway') {
+    await sendConfirmations({ ref, name, phone, email, location, service, duration, date, time, price });
+  }
+
+  res.json({ success: true, ref });
+});
+
+// ── SHARED: SMS + EMAIL CONFIRMATIONS ──
+async function sendConfirmations({ ref, name, phone, email, location, service, duration, date, time, price }) {
+  const toPhone = String(phone).startsWith('+') ? phone : '+351' + String(phone).replace(/\s/g, '');
+  // SMS to customer
   try {
     await twilioClient.messages.create({
       body: `Bangkok Thai Massage\nReserva: ${ref}\n${service} – ${duration}min\n${date} às ${time}\n${LOC_ADDR[location]}\nObrigado, ${name.split(' ')[0]}!`,
@@ -196,8 +206,7 @@ app.post('/api/book', async (req, res) => {
   } catch (smsErr) {
     console.error('Twilio SMS error:', smsErr.message);
   }
-
-  // 4. Email via Hostinger SMTP (non-blocking)
+  // Email to customer
   try {
     await mailer.sendMail({
       from: `"Bangkok Thai Massage" <${process.env.EMAIL_USER}>`,
@@ -208,9 +217,7 @@ app.post('/api/book', async (req, res) => {
   } catch (emailErr) {
     console.error('Email error:', emailErr.message);
   }
-
-  res.json({ success: true, ref });
-});
+}
 
 // ── STRIPE WEBHOOK ──
 // Confirms MB WAY bookings when customer approves payment in the app
@@ -229,12 +236,21 @@ app.post('/api/stripe-webhook', async (req, res) => {
   if (event.type === 'payment_intent.succeeded') {
     const pi = event.data.object;
     try {
-      await db.execute(
-        "UPDATE bookings SET status = 'confirmed' WHERE payment_intent_id = ? AND status = 'pending'",
+      const [rows] = await db.execute(
+        "SELECT * FROM bookings WHERE payment_intent_id = ? AND status = 'pending' LIMIT 1",
         [pi.id]
       );
+      if (rows.length) {
+        const b = rows[0];
+        await db.execute(
+          "UPDATE bookings SET status = 'confirmed' WHERE payment_intent_id = ?",
+          [pi.id]
+        );
+        // Now payment is confirmed — send SMS + email
+        await sendConfirmations(b);
+      }
     } catch (err) {
-      console.error('Webhook DB error:', err.message);
+      console.error('Webhook error:', err.message);
     }
   }
 
