@@ -193,19 +193,7 @@ app.post('/api/book', async (req, res) => {
     console.error('Twilio SMS error:', smsErr.message);
   }
 
-  // 4. WhatsApp confirmation (non-blocking)
-  try {
-    const waFrom = process.env.WHATSAPP_FROM || 'whatsapp:+14155238886';
-    await twilioClient.messages.create({
-      body: `*Bangkok Thai Massage* 🙏\n\nReserva confirmada!\n\n📋 *Ref:* ${ref}\n💆 *Serviço:* ${service} – ${duration}min\n📅 *Data:* ${date} às ${time}\n📍 *Local:* ${LOC_ADDR[location]}\n💶 *Total:* €${price}\n\nObrigado, ${name.split(' ')[0]}! Até breve 🌿`,
-      from: waFrom,
-      to: `whatsapp:${toPhone}`
-    });
-  } catch (waErr) {
-    console.error('WhatsApp error:', waErr.message);
-  }
-
-  // 5. Email via Hostinger SMTP (non-blocking)
+  // 4. Email via Hostinger SMTP (non-blocking)
   try {
     await mailer.sendMail({
       from: `"Bangkok Thai Massage" <${process.env.EMAIL_USER}>`,
