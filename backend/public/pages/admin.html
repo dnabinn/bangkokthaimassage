@@ -3,215 +3,234 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin — Bangkok Thai Massage</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <title>BTM Admin — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --green-dark: #0D2818;
-      --green-mid:  #1E4728;
-      --green-light:#2D6A3F;
-      --gold:       #C9A84C;
-      --gold-light: #E8C96A;
-      --cream:      #FAF7EF;
-      --white:      #FFFFFF;
-      --border:     #E8E0D0;
-      --text-dark:  #1A1A1A;
-      --text-muted: #888;
-      --red:        #E53E3E;
-      --orange:     #DD6B20;
+      --green:  #0D2818;
+      --gold:   #C9A84C;
+      --cream:  #FAF7EF;
+      --border: #E8E0D0;
+      --text:   #222;
+      --muted:  #888;
+      --red:    #c0392b;
+      --orange: #e67e22;
+      --teal:   #1E4728;
     }
 
-    body { font-family: 'Jost', sans-serif; background: #F4F1EA; color: var(--text-dark); min-height: 100vh; }
+    body { font-family: 'Jost', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
 
     /* ── LOGIN ── */
-    #loginScreen {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      background: var(--green-dark);
+    #login-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; background: var(--green);
     }
     .login-box {
-      background: var(--white); border-radius: 12px; padding: 3rem 2.5rem;
-      width: 100%; max-width: 380px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      background: #fff; border-radius: 12px; padding: 48px 40px;
+      width: 360px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
-    .login-logo { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: var(--text-muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.3rem; }
-    .login-title { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--green-dark); margin-bottom: 2rem; }
+    .login-box h1 { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+    .login-box p  { font-size: 22px; color: var(--green); font-weight: 400; margin-bottom: 32px; }
     .login-box input {
-      width: 100%; padding: 0.85rem 1rem; border: 1px solid var(--border); border-radius: 6px;
-      font-family: 'Jost', sans-serif; font-size: 0.95rem; margin-bottom: 1rem;
-      background: var(--cream); outline: none; transition: border-color 0.2s;
+      width: 100%; padding: 12px 16px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 15px; font-family: inherit;
+      outline: none; margin-bottom: 16px; transition: border-color .2s;
     }
-    .login-box input:focus { border-color: var(--green-mid); }
-    .login-btn {
-      width: 100%; padding: 0.9rem; background: var(--green-dark); color: var(--white);
-      border: none; border-radius: 6px; font-family: 'Jost', sans-serif; font-size: 0.85rem;
-      font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: background 0.2s;
+    .login-box input:focus { border-color: var(--gold); }
+    .login-box button {
+      width: 100%; padding: 13px; background: var(--green); color: #fff;
+      border: none; border-radius: 6px; font-size: 14px; letter-spacing: 0.1em;
+      text-transform: uppercase; cursor: pointer; transition: background .2s;
     }
-    .login-btn:hover { background: var(--green-mid); }
-    .login-error { color: var(--red); font-size: 0.8rem; margin-top: 0.5rem; display: none; }
+    .login-box button:hover { background: var(--teal); }
+    #login-err { color: var(--red); font-size: 13px; margin-top: 12px; display: none; }
 
     /* ── DASHBOARD ── */
     #dashboard { display: none; }
 
-    .topbar {
-      background: var(--green-dark); padding: 0 2rem; height: 60px;
+    header {
+      background: var(--green); color: #fff;
+      padding: 0 32px; height: 60px;
       display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      position: sticky; top: 0; z-index: 100;
     }
-    .topbar__brand { font-family: 'Cormorant Garamond', serif; color: var(--gold-light); font-size: 1rem; letter-spacing: 0.12em; text-transform: uppercase; }
-    .topbar__right { display: flex; align-items: center; gap: 1.2rem; }
-    .topbar__badge { font-size: 0.7rem; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; }
-    .topbar__logout { background: none; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); padding: 0.35rem 0.9rem; border-radius: 4px; font-size: 0.72rem; font-family: 'Jost', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
-    .topbar__logout:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-left span { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); }
+    .header-left strong { font-size: 16px; font-weight: 500; }
+    #btn-logout { background: none; border: 1px solid rgba(255,255,255,0.3); color: #fff;
+      padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;
+      letter-spacing: 0.1em; text-transform: uppercase; transition: border-color .2s; }
+    #btn-logout:hover { border-color: #fff; }
 
-    .main { max-width: 1440px; margin: 0 auto; padding: 2rem 1.5rem; }
+    main { max-width: 1300px; margin: 0 auto; padding: 32px 24px; }
 
     /* ── STATS ── */
-    .stats-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1rem; margin-bottom: 2rem; }
-    @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
-    @media (max-width: 600px)  { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-
-    .stat-card { background: var(--white); border-radius: 10px; padding: 1.2rem 1.4rem; border: 1px solid var(--border); }
-    .stat-card__label { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
-    .stat-card__value { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 300; color: var(--green-dark); line-height: 1; }
-    .stat-card__value.gold   { color: var(--gold); }
-    .stat-card__value.green  { color: #276749; }
-    .stat-card__value.orange { color: var(--orange); }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px; margin-bottom: 32px;
+    }
+    .stat-card {
+      background: #fff; border: 1px solid var(--border); border-radius: 8px;
+      padding: 20px 24px;
+    }
+    .stat-card .label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .stat-card .value { font-size: 28px; font-weight: 600; color: var(--green); }
+    .stat-card .value.gold { color: var(--gold); }
+    .stat-card .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
     /* ── FILTERS ── */
     .filters {
-      background: var(--white); border-radius: 10px; padding: 1.2rem 1.5rem;
-      border: 1px solid var(--border); margin-bottom: 1.5rem;
-      display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
+      background: #fff; border: 1px solid var(--border); border-radius: 8px;
+      padding: 20px 24px; margin-bottom: 24px;
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
     }
-    .filter-group { display: flex; flex-direction: column; gap: 0.35rem; }
-    .filter-group label { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
-    .filter-group select, .filter-group input {
-      padding: 0.5rem 0.8rem; border: 1px solid var(--border); border-radius: 6px;
-      font-family: 'Jost', sans-serif; font-size: 0.85rem; background: var(--cream);
-      color: var(--text-dark); outline: none; min-width: 140px;
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-group label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+    .filter-group select,
+    .filter-group input {
+      padding: 8px 12px; border: 1px solid var(--border); border-radius: 5px;
+      font-size: 13px; font-family: inherit; outline: none; background: #fff;
+      transition: border-color .2s;
     }
-    .filter-group select:focus, .filter-group input:focus { border-color: var(--green-mid); }
-    .filter-btn { padding: 0.5rem 1.3rem; background: var(--green-dark); color: var(--white); border: none; border-radius: 6px; font-family: 'Jost', sans-serif; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; align-self: flex-end; }
-    .filter-btn:hover { background: var(--green-mid); }
-    .filter-reset { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 0.5rem 1rem; border-radius: 6px; font-family: 'Jost', sans-serif; font-size: 0.75rem; cursor: pointer; align-self: flex-end; }
-    .filter-reset:hover { border-color: var(--text-muted); color: var(--text-dark); }
-    .filter-count { align-self: flex-end; font-size: 0.78rem; color: var(--text-muted); }
+    .filter-group select:focus,
+    .filter-group input:focus { border-color: var(--gold); }
+    .btn-filter {
+      padding: 8px 20px; background: var(--green); color: #fff;
+      border: none; border-radius: 5px; font-size: 13px; cursor: pointer;
+      align-self: flex-end; transition: background .2s;
+    }
+    .btn-filter:hover { background: var(--teal); }
+    .btn-reset {
+      padding: 8px 16px; background: none; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 5px; font-size: 13px;
+      cursor: pointer; align-self: flex-end; transition: all .2s;
+    }
+    .btn-reset:hover { border-color: var(--text); color: var(--text); }
+
+    /* ── LOCATION SECTIONS ── */
+    .location-section { margin-bottom: 36px; }
+    .location-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 12px;
+    }
+    .location-header h2 { font-size: 14px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--green); }
+    .location-badge {
+      background: var(--green); color: var(--gold); font-size: 11px;
+      padding: 3px 10px; border-radius: 20px; letter-spacing: 0.1em;
+    }
 
     /* ── TABLE ── */
-    .section-label {
-      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--text-muted); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem;
+    .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
+    thead th {
+      background: var(--green); color: #fff; padding: 11px 14px;
+      text-align: left; font-weight: 500; font-size: 11px;
+      letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
     }
-    .section-label::before { content:''; display:inline-block; width:10px; height:2px; background:var(--gold); border-radius:2px; }
-
-    .table-wrap { background: var(--white); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 2rem; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 900px; }
-    thead { background: var(--green-dark); }
-    thead th { color: rgba(255,255,255,0.75); font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.68rem; padding: 0.85rem 1rem; text-align: left; white-space: nowrap; }
-    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: #FDFBF6; }
-    tbody td { padding: 0.75rem 1rem; vertical-align: middle; }
+    tbody tr:hover { background: #fdf9f3; }
+    tbody td { padding: 11px 14px; vertical-align: middle; white-space: nowrap; }
+    .ref { font-family: monospace; font-size: 12px; color: var(--teal); font-weight: 600; }
+    .client-name { font-weight: 500; }
+    .client-phone { color: var(--muted); font-size: 12px; }
+    .client-email { color: var(--muted); font-size: 12px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+    .notes-cell { max-width: 140px; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-size: 12px; }
 
-    .ref-cell { font-weight: 600; color: var(--green-dark); font-size: 0.78rem; letter-spacing: 0.05em; white-space: nowrap; }
-    .name-cell { font-weight: 500; white-space: nowrap; }
-    .contact-cell { display: flex; flex-direction: column; gap: 2px; }
-    .contact-cell a { color: var(--text-muted); text-decoration: none; font-size: 0.75rem; white-space: nowrap; }
-    .contact-cell a:hover { color: var(--green-mid); text-decoration: underline; }
-    .service-cell { max-width: 160px; }
-    .service-cell__name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-    .service-cell__dur { font-size: 0.72rem; color: var(--text-muted); }
-    .price-cell { font-weight: 600; color: var(--green-dark); white-space: nowrap; }
-    .datetime-cell { white-space: nowrap; }
-    .datetime-cell__date { font-weight: 500; }
-    .datetime-cell__time { font-size: 0.72rem; color: var(--text-muted); }
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .badge-confirmed  { background: #e8f5e9; color: #2e7d32; }
+    .badge-pending    { background: #fff3e0; color: #e65100; }
+    .badge-cancelled  { background: #fce4ec; color: #c62828; }
 
-    .pay-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.68rem; font-weight: 500; background: #EEE; color: #555; text-transform: uppercase; white-space: nowrap; }
-    .pay-badge--mbway { background: #FFF5F5; color: #C53030; }
-    .pay-badge--card  { background: #EBF8FF; color: #2C5282; }
+    .badge-card   { background: #e3f2fd; color: #1565c0; }
+    .badge-mbway  { background: #f3e5f5; color: #6a1b9a; }
+    .badge-whatsapp { background: #e8f5e9; color: #1b5e20; }
+    .badge-unknown { background: #f5f5f5; color: #666; }
 
     .status-select {
-      padding: 0.3rem 0.6rem; border-radius: 20px; font-family: 'Jost', sans-serif;
-      font-size: 0.72rem; font-weight: 600; border: none; cursor: pointer; outline: none;
-      appearance: none; -webkit-appearance: none;
-      background-repeat: no-repeat; background-position: right 0.5rem center; padding-right: 1.6rem;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+      padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px;
+      font-size: 12px; font-family: inherit; cursor: pointer; background: #fff;
     }
-    .status-select.confirmed { background-color: #F0FFF4; color: #276749; }
-    .status-select.pending   { background-color: #FFFBEB; color: #B7791F; }
-    .status-select.cancelled { background-color: #FFF5F5; color: #C53030; }
+    .status-select:focus { outline: none; border-color: var(--gold); }
 
-    .notes-cell { max-width: 130px; font-size: 0.75rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .empty-row td { text-align: center; padding: 32px; color: var(--muted); font-size: 14px; }
 
-    .empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
-    .empty-state__icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.4; }
-    .loading-state { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.85rem; }
-
-    /* ── TOAST ── */
-    .toast {
-      position: fixed; bottom: 2rem; right: 2rem; z-index: 9999;
-      background: var(--green-dark); color: var(--white); padding: 0.8rem 1.4rem;
-      border-radius: 8px; font-size: 0.82rem; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-      transform: translateY(100px); opacity: 0; transition: all 0.3s ease; pointer-events: none;
+    /* ── LOADING ── */
+    #loading {
+      text-align: center; padding: 60px; color: var(--muted); font-size: 15px;
     }
-    .toast.show { transform: translateY(0); opacity: 1; }
-    .toast.error { background: var(--red); }
+    .spinner {
+      width: 32px; height: 32px; border: 3px solid var(--border);
+      border-top-color: var(--green); border-radius: 50%;
+      animation: spin .7s linear infinite; margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      main { padding: 16px; }
+      header { padding: 0 16px; }
+      .filters { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
 
 <!-- LOGIN -->
-<div id="loginScreen">
+<div id="login-screen">
   <div class="login-box">
-    <p class="login-logo">Bangkok Thai Massage</p>
-    <h1 class="login-title">Painel Admin</h1>
-    <input type="password" id="pwInput" placeholder="Palavra-passe" autocomplete="current-password">
-    <button class="login-btn" onclick="doLogin()">Entrar</button>
-    <p class="login-error" id="loginError">Palavra-passe incorreta</p>
+    <h1>Bangkok Thai Massage</h1>
+    <p>Painel de Reservas</p>
+    <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password">
+    <button id="btn-login">Entrar</button>
+    <p id="login-err">Password incorreta.</p>
   </div>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard">
-  <nav class="topbar">
-    <span class="topbar__brand">✦ Bangkok Thai Massage &nbsp;·&nbsp; Admin</span>
-    <div class="topbar__right">
-      <span class="topbar__badge" id="lastRefreshed"></span>
-      <button class="topbar__logout" onclick="logout()">Sair</button>
+  <header>
+    <div class="header-left">
+      <span>Bangkok Thai Massage</span>
+      <strong>Painel de Reservas</strong>
     </div>
-  </nav>
+    <button id="btn-logout">Sair</button>
+  </header>
 
-  <div class="main">
-
-    <!-- STATS -->
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-card__label">Total</div><div class="stat-card__value" id="s-total">—</div></div>
-      <div class="stat-card"><div class="stat-card__label">Confirmadas</div><div class="stat-card__value green" id="s-confirmed">—</div></div>
-      <div class="stat-card"><div class="stat-card__label">Pendentes</div><div class="stat-card__value orange" id="s-pending">—</div></div>
-      <div class="stat-card"><div class="stat-card__label">Receita</div><div class="stat-card__value gold" id="s-revenue">—</div></div>
-      <div class="stat-card"><div class="stat-card__label">Hoje</div><div class="stat-card__value" id="s-today">—</div></div>
-      <div class="stat-card"><div class="stat-card__label">Saldanha</div><div class="stat-card__value" id="s-saldanha">—</div></div>
-      <div class="stat-card"><div class="stat-card__label">Caparica</div><div class="stat-card__value" id="s-caparica">—</div></div>
+  <main>
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="label">Total Reservas</div><div class="value" id="stat-total">—</div></div>
+      <div class="stat-card"><div class="label">Hoje</div><div class="value" id="stat-today">—</div></div>
+      <div class="stat-card"><div class="label">Confirmadas</div><div class="value" id="stat-confirmed">—</div></div>
+      <div class="stat-card"><div class="label">Pendentes</div><div class="value" id="stat-pending">—</div></div>
+      <div class="stat-card"><div class="label">Receita Total</div><div class="value gold" id="stat-revenue">—</div></div>
+      <div class="stat-card"><div class="label">Saldanha</div><div class="value" id="stat-saldanha">—</div><div class="sub">reservas confirmadas</div></div>
+      <div class="stat-card"><div class="label">Caparica</div><div class="value" id="stat-caparica">—</div><div class="sub">reservas confirmadas</div></div>
     </div>
 
-    <!-- FILTERS -->
+    <!-- Filters -->
     <div class="filters">
       <div class="filter-group">
-        <label>Localização</label>
+        <label>Local</label>
         <select id="f-location">
-          <option value="">Todas</option>
+          <option value="">Todos</option>
           <option value="saldanha">Saldanha</option>
-          <option value="caparica">Costa da Caparica</option>
+          <option value="caparica">Caparica</option>
         </select>
       </div>
       <div class="filter-group">
         <label>Estado</label>
         <select id="f-status">
           <option value="">Todos</option>
-          <option value="confirmed">Confirmada</option>
+          <option value="confirmed">Confirmado</option>
           <option value="pending">Pendente</option>
-          <option value="cancelled">Cancelada</option>
+          <option value="cancelled">Cancelado</option>
         </select>
       </div>
       <div class="filter-group">
@@ -222,207 +241,211 @@
         <label>Até</label>
         <input type="date" id="f-to">
       </div>
-      <button class="filter-btn" onclick="loadBookings()">Filtrar</button>
-      <button class="filter-reset" onclick="resetFilters()">Limpar</button>
-      <span class="filter-count" id="filterCount"></span>
+      <button class="btn-filter" id="btn-apply">Aplicar</button>
+      <button class="btn-reset" id="btn-reset">Limpar</button>
     </div>
 
-    <!-- BOOKINGS -->
-    <div id="bookingsArea">
-      <div class="loading-state">A carregar reservas...</div>
+    <!-- Bookings -->
+    <div id="bookings-container">
+      <div id="loading"><div class="spinner"></div>A carregar reservas…</div>
     </div>
-
-  </div>
+  </main>
 </div>
-
-<div class="toast" id="toast"></div>
 
 <script src="../js/config.js"></script>
 <script>
-  const BASE = (typeof window.BACKEND_URL !== 'undefined') ? window.BACKEND_URL : '';
-  let adminPw = sessionStorage.getItem('btm-admin-pw') || '';
+  const API = window.BACKEND_URL || '';
+  let adminPw = '';
 
   // ── AUTH ──
-  function doLogin() {
-    const pw = document.getElementById('pwInput').value.trim();
+  const loginScreen = document.getElementById('login-screen');
+  const dashboard   = document.getElementById('dashboard');
+
+  function tryLogin() {
+    const pw = document.getElementById('pw-input').value.trim();
     if (!pw) return;
     adminPw = pw;
-    sessionStorage.setItem('btm-admin-pw', pw);
-    verifyAndLoad();
+    sessionStorage.setItem('btm_admin_pw', pw);
+    loadDashboard();
   }
-  document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
-  function logout() {
-    sessionStorage.removeItem('btm-admin-pw');
+  document.getElementById('btn-login').addEventListener('click', tryLogin);
+  document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    sessionStorage.removeItem('btm_admin_pw');
     adminPw = '';
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('pwInput').value = '';
-  }
+    loginScreen.style.display = 'flex';
+    dashboard.style.display = 'none';
+  });
 
-  async function verifyAndLoad() {
+  // Auto-login if session saved
+  const saved = sessionStorage.getItem('btm_admin_pw');
+  if (saved) { adminPw = saved; loadDashboard(); }
+
+  // ── LOAD ──
+  async function loadDashboard() {
     try {
-      const res = await api('/api/admin/stats');
-      if (res.status === 401) {
-        document.getElementById('loginError').style.display = 'block';
-        return;
-      }
-      document.getElementById('loginError').style.display = 'none';
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      renderStats(await res.json());
-      loadBookings();
+      const statsRes = await fetch(`${API}/api/admin/stats`, { headers: { 'x-admin-password': adminPw } });
+      if (statsRes.status === 401) { showLoginError(); return; }
+      const stats = await statsRes.json();
+      renderStats(stats);
+      loginScreen.style.display = 'none';
+      dashboard.style.display = 'block';
+      await loadBookings();
     } catch (e) {
-      document.getElementById('loginError').style.display = 'block';
+      showLoginError();
     }
   }
 
-  // ── API ──
-  function api(path, method = 'GET', body) {
-    const opts = { method, headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPw } };
-    if (body) opts.body = JSON.stringify(body);
-    return fetch(BASE + path, opts);
+  function showLoginError() {
+    document.getElementById('login-err').style.display = 'block';
+    adminPw = '';
+    sessionStorage.removeItem('btm_admin_pw');
+    loginScreen.style.display = 'flex';
+    dashboard.style.display = 'none';
   }
 
-  // ── STATS ──
-  function renderStats(d) {
-    document.getElementById('s-total').textContent     = d.total     ?? '—';
-    document.getElementById('s-confirmed').textContent = d.confirmed ?? '—';
-    document.getElementById('s-pending').textContent   = d.pending   ?? '—';
-    document.getElementById('s-revenue').textContent   = d.revenue != null ? '€' + Number(d.revenue).toFixed(0) : '—';
-    document.getElementById('s-today').textContent     = d.today     ?? '—';
-    document.getElementById('s-saldanha').textContent  = d.saldanha  ?? '—';
-    document.getElementById('s-caparica').textContent  = d.caparica  ?? '—';
-    const now = new Date();
-    document.getElementById('lastRefreshed').textContent =
-      'Atualizado às ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-  }
-
-  // ── LOAD BOOKINGS ──
   async function loadBookings() {
+    document.getElementById('bookings-container').innerHTML = '<div id="loading"><div class="spinner"></div>A carregar reservas…</div>';
+    const params = new URLSearchParams();
     const loc    = document.getElementById('f-location').value;
     const status = document.getElementById('f-status').value;
     const from   = document.getElementById('f-from').value;
     const to     = document.getElementById('f-to').value;
-    const params = new URLSearchParams();
     if (loc)    params.set('location', loc);
-    if (status) params.set('status',   status);
-    if (from)   params.set('from',     from);
-    if (to)     params.set('to',       to);
+    if (status) params.set('status', status);
+    if (from)   params.set('from', from);
+    if (to)     params.set('to', to);
 
-    document.getElementById('bookingsArea').innerHTML = '<div class="loading-state">A carregar...</div>';
-    try {
-      const [bRes, sRes] = await Promise.all([
-        api('/api/admin/bookings?' + params.toString()),
-        api('/api/admin/stats')
-      ]);
-      const bookings = await bRes.json();
-      renderStats(await sRes.json());
-      renderBookings(bookings);
-    } catch (e) {
-      document.getElementById('bookingsArea').innerHTML = '<div class="loading-state">Erro ao carregar.</div>';
-    }
+    const res  = await fetch(`${API}/api/admin/bookings?${params}`, { headers: { 'x-admin-password': adminPw } });
+    const data = await res.json();
+    renderBookings(data);
   }
 
-  // ── RENDER ──
-  function renderBookings(bookings) {
-    document.getElementById('filterCount').textContent =
-      bookings.length + ' reserva' + (bookings.length !== 1 ? 's' : '');
+  document.getElementById('btn-apply').addEventListener('click', loadBookings);
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    ['f-location','f-status','f-from','f-to'].forEach(id => document.getElementById(id).value = '');
+    loadBookings();
+  });
 
-    if (!bookings.length) {
-      document.getElementById('bookingsArea').innerHTML =
-        '<div class="table-wrap"><div class="empty-state"><div class="empty-state__icon">📋</div><div>Nenhuma reserva encontrada.</div></div></div>';
+  // ── RENDER STATS ──
+  function renderStats(s) {
+    document.getElementById('stat-total').textContent     = s.total ?? 0;
+    document.getElementById('stat-today').textContent     = s.today ?? 0;
+    document.getElementById('stat-confirmed').textContent = s.confirmed ?? 0;
+    document.getElementById('stat-pending').textContent   = s.pending ?? 0;
+    document.getElementById('stat-revenue').textContent   = '€' + Number(s.revenue ?? 0).toFixed(2);
+    document.getElementById('stat-saldanha').textContent  = s.saldanha ?? 0;
+    document.getElementById('stat-caparica').textContent  = s.caparica ?? 0;
+  }
+
+  // ── RENDER BOOKINGS ──
+  function renderBookings(rows) {
+    const container = document.getElementById('bookings-container');
+    if (!rows.length) {
+      container.innerHTML = '<p style="text-align:center;color:#888;padding:48px">Nenhuma reserva encontrada.</p>';
       return;
     }
 
-    // Group by location
-    const groups = { saldanha: [], caparica: [] };
-    bookings.forEach(b => (groups[b.location] ? groups[b.location] : groups.saldanha).push(b));
-    const labels = { saldanha: 'Saldanha — Lisboa', caparica: 'Costa da Caparica' };
+    const grouped = { saldanha: [], caparica: [], other: [] };
+    rows.forEach(r => {
+      if (r.location === 'saldanha') grouped.saldanha.push(r);
+      else if (r.location === 'caparica') grouped.caparica.push(r);
+      else grouped.other.push(r);
+    });
 
+    const labels = { saldanha: 'Saldanha — Lisboa', caparica: 'Costa da Caparica', other: 'Outro' };
     let html = '';
-    for (const [loc, rows] of Object.entries(groups)) {
-      if (!rows.length) continue;
-      html += `<div class="section-label">${labels[loc]} &nbsp;·&nbsp; ${rows.length} reserva${rows.length !== 1 ? 's' : ''}</div>
-      <div class="table-wrap"><table>
-        <thead><tr>
-          <th>Ref</th><th>Cliente</th><th>Contacto</th><th>Serviço</th>
-          <th>Data / Hora</th><th>Preço</th><th>Pagamento</th><th>Estado</th><th>Notas</th>
-        </tr></thead>
-        <tbody>${rows.map(rowHtml).join('')}</tbody>
-      </table></div>`;
+    for (const [key, bookings] of Object.entries(grouped)) {
+      if (!bookings.length) continue;
+      html += `
+        <div class="location-section">
+          <div class="location-header">
+            <h2>${labels[key]}</h2>
+            <span class="location-badge">${bookings.length} reserva${bookings.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ref</th>
+                  <th>Data</th>
+                  <th>Hora</th>
+                  <th>Cliente</th>
+                  <th>Telefone</th>
+                  <th>Email</th>
+                  <th>Serviço</th>
+                  <th>Duração</th>
+                  <th>Preço</th>
+                  <th>Pagamento</th>
+                  <th>Notas</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${bookings.map(b => rowHtml(b)).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
     }
-    document.getElementById('bookingsArea').innerHTML = html;
+    container.innerHTML = html;
+
+    // Status change handlers
+    container.querySelectorAll('.status-select').forEach(sel => {
+      sel.addEventListener('change', async e => {
+        const ref = e.target.dataset.ref;
+        const newStatus = e.target.value;
+        await fetch(`${API}/api/admin/bookings/${ref}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPw },
+          body: JSON.stringify({ status: newStatus })
+        });
+        // Refresh stats
+        const statsRes = await fetch(`${API}/api/admin/stats`, { headers: { 'x-admin-password': adminPw } });
+        renderStats(await statsRes.json());
+      });
+    });
   }
 
   function rowHtml(b) {
-    const sc = b.status === 'confirmed' ? 'confirmed' : b.status === 'pending' ? 'pending' : 'cancelled';
-    const sl = { confirmed: '✓ Confirmada', pending: '⏳ Pendente', cancelled: '✕ Cancelada' };
-    const pl = { mbway: 'MB WAY', card: 'Cartão', stripe: 'Cartão', cash: 'Dinheiro', unknown: '—' };
-    const pc = b.pay_method === 'mbway' ? 'pay-badge--mbway' : (b.pay_method === 'card' || b.pay_method === 'stripe') ? 'pay-badge--card' : '';
-    const notes = (b.notes || '').replace(/"/g, '&quot;');
+    const payBadge = {
+      card: 'badge-card', mbway: 'badge-mbway', whatsapp: 'badge-whatsapp'
+    }[b.pay_method] || 'badge-unknown';
+
+    const payLabel = { card: 'Cartão', mbway: 'MB WAY', whatsapp: 'Local' }[b.pay_method] || b.pay_method;
+
     return `<tr>
-      <td><span class="ref-cell">${esc(b.ref)}</span></td>
-      <td><span class="name-cell">${esc(b.name)}</span></td>
-      <td><div class="contact-cell">
-        <a href="tel:${esc(b.phone)}">${esc(b.phone)}</a>
-        <a href="mailto:${esc(b.email)}">${esc(b.email)}</a>
-      </div></td>
-      <td><div class="service-cell">
-        <div class="service-cell__name" title="${esc(b.service)}">${esc(b.service)}</div>
-        <div class="service-cell__dur">${b.duration} min</div>
-      </div></td>
-      <td><div class="datetime-cell">
-        <div class="datetime-cell__date">${b.date}</div>
-        <div class="datetime-cell__time">${b.time}</div>
-      </div></td>
-      <td><span class="price-cell">€${Number(b.price).toFixed(2)}</span></td>
-      <td><span class="pay-badge ${pc}">${pl[b.pay_method] || b.pay_method || '—'}</span></td>
-      <td><select class="status-select ${sc}" data-ref="${b.ref}" onchange="changeStatus(this)">
-        <option value="confirmed" ${b.status==='confirmed'?'selected':''}>✓ Confirmada</option>
-        <option value="pending"   ${b.status==='pending'  ?'selected':''}>⏳ Pendente</option>
-        <option value="cancelled" ${b.status==='cancelled'?'selected':''}>✕ Cancelada</option>
-      </select></td>
-      <td><span class="notes-cell" title="${notes}">${notes || '—'}</span></td>
+      <td><span class="ref">${b.ref}</span></td>
+      <td>${formatDate(b.date)}</td>
+      <td>${b.time}</td>
+      <td><span class="client-name">${esc(b.name)}</span></td>
+      <td><span class="client-phone">${esc(b.phone)}</span></td>
+      <td><span class="client-email" title="${esc(b.email)}">${esc(b.email)}</span></td>
+      <td>${esc(b.service)}</td>
+      <td>${b.duration}min</td>
+      <td>€${Number(b.price).toFixed(2)}</td>
+      <td><span class="badge ${payBadge}">${payLabel}</span></td>
+      <td><span class="notes-cell" title="${esc(b.notes || '')}">${esc(b.notes || '—')}</span></td>
+      <td>
+        <select class="status-select" data-ref="${b.ref}">
+          <option value="confirmed" ${b.status==='confirmed'?'selected':''}>Confirmado</option>
+          <option value="pending"   ${b.status==='pending'  ?'selected':''}>Pendente</option>
+          <option value="cancelled" ${b.status==='cancelled'?'selected':''}>Cancelado</option>
+        </select>
+      </td>
     </tr>`;
   }
 
-  function esc(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  function formatDate(d) {
+    if (!d) return '—';
+    const [y, m, day] = String(d).slice(0,10).split('-');
+    return `${day}/${m}/${y}`;
   }
 
-  // ── STATUS UPDATE ──
-  async function changeStatus(sel) {
-    const ref = sel.dataset.ref, status = sel.value;
-    sel.className = 'status-select ' + status;
-    try {
-      const res = await api(`/api/admin/bookings/${ref}`, 'PATCH', { status });
-      if (res.ok) {
-        showToast('Estado → ' + { confirmed:'Confirmada', pending:'Pendente', cancelled:'Cancelada' }[status]);
-        api('/api/admin/stats').then(r => r.json()).then(renderStats).catch(()=>{});
-      } else {
-        showToast('Erro ao atualizar', true);
-      }
-    } catch { showToast('Erro de ligação', true); }
+  function esc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
-
-  // ── FILTERS ──
-  function resetFilters() {
-    ['f-location','f-status','f-from','f-to'].forEach(id => document.getElementById(id).value = '');
-    loadBookings();
-  }
-
-  // ── TOAST ──
-  function showToast(msg, error = false) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast' + (error ? ' error' : '');
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
-  }
-
-  // ── INIT ──
-  if (adminPw) verifyAndLoad();
 </script>
 </body>
 </html>
