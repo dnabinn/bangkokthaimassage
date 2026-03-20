@@ -353,6 +353,53 @@ function buildEmailHtml({ ref, name, location, service, duration, date, time, pr
 </body></html>`;
 }
 
+// ── GET /api/instagram-feed ──
+// Fetches latest 6 posts from Instagram Business Account, cached for 1 hour
+let igCache = { posts: [], fetchedAt: 0 };
+
+app.get('/api/instagram-feed', async (_req, res) => {
+  const token = process.env.INSTAGRAM_ACCESS_TOKEN;
+  if (!token) return res.json({ posts: [] });
+
+  // Return cache if fresh (< 1 hour)
+  if (igCache.posts.length && Date.now() - igCache.fetchedAt < 3600000) {
+    return res.json({ posts: igCache.posts });
+  }
+
+  try {
+    // Step 1: Get Facebook Page with IG Business Account attached
+    const pagesResp = await fetch(
+      `https://graph.facebook.com/v19.0/me/accounts?fields=instagram_business_account&access_token=${token}`
+    );
+    const pagesData = await pagesResp.json();
+    const page = (pagesData.data || []).find(p => p.instagram_business_account);
+    if (!page) return res.json({ posts: [] });
+
+    const igId = page.instagram_business_account.id;
+
+    // Step 2: Fetch recent media
+    const mediaResp = await fetch(
+      `https://graph.facebook.com/v19.0/${igId}/media?fields=id,media_type,media_url,permalink,thumbnail_url&limit=9&access_token=${token}`
+    );
+    const mediaData = await mediaResp.json();
+
+    const posts = (mediaData.data || [])
+      .filter(p => p.media_type === 'IMAGE' || p.media_type === 'CAROUSEL_ALBUM')
+      .slice(0, 6)
+      .map(p => ({
+        id: p.id,
+        url: p.media_url || p.thumbnail_url,
+        permalink: p.permalink
+      }));
+
+    igCache = { posts, fetchedAt: Date.now() };
+    res.json({ posts });
+  } catch (err) {
+    console.error('Instagram feed error:', err.message);
+    res.json({ posts: igCache.posts }); // return stale cache on error
+  }
+});
+
 // ── POST /api/contact ──
 app.post('/api/contact', async (req, res) => {
   const { name, email, subject, message } = req.body;
