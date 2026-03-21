@@ -138,12 +138,58 @@ app.post('/api/mbway-charge', async (req, res) => {
   }
 });
 
+// ── GET /api/staff ──
+// Public endpoint — returns staff for a location+date with availability
+app.get('/api/staff', async (req, res) => {
+  const { location, date, time, duration } = req.query;
+  if (!location || !date) {
+    return res.status(400).json({ error: 'location and date are required' });
+  }
+  try {
+    const dayOfWeek = new Date(date + 'T12:00:00').getDay();
+    const [staffRows] = await db.execute(
+      `SELECT s.id, s.name FROM staff s
+       JOIN staff_schedule ss ON ss.staff_id = s.id
+       WHERE s.location = ? AND s.active = 1 AND ss.day_of_week = ?
+       ORDER BY s.id`,
+      [location, dayOfWeek]
+    );
+
+    if (!time || !duration) {
+      return res.json(staffRows.map(s => ({ id: s.id, name: s.name, available: true })));
+    }
+
+    const [hh, mm] = time.split(':').map(Number);
+    const newStart = hh * 60 + mm;
+    const newEnd   = newStart + parseInt(duration) + 15;
+
+    const result = [];
+    for (const s of staffRows) {
+      const [bookings] = await db.execute(
+        `SELECT time, duration FROM bookings
+         WHERE staff_id = ? AND date = ? AND status != 'cancelled'`,
+        [s.id, date]
+      );
+      const busy = bookings.some(b => {
+        const [bh, bm] = b.time.split(':').map(Number);
+        const existingStart = bh * 60 + bm;
+        const existingEnd   = existingStart + parseInt(b.duration) + 15;
+        return newStart < existingEnd && newEnd > existingStart;
+      });
+      result.push({ id: s.id, name: s.name, available: !busy });
+    }
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── POST /api/book ──
 app.post('/api/book', async (req, res) => {
   const {
     location, service, duration, price,
     date, time, name, email, phone, notes,
-    paymentIntentId, payMethod
+    paymentIntentId, payMethod, staffId
   } = req.body;
 
   const required = { location, service, duration, price, date, time, name, email, phone };
@@ -160,9 +206,9 @@ app.post('/api/book', async (req, res) => {
     // 1. Save booking
     await db.execute(
       `INSERT INTO bookings
-        (ref, location, service, duration, price, date, time, name, email, phone, notes, payment_intent_id, pay_method, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [ref, location, service, duration, price, date, time, name, email, phone,
+        (ref, location, staff_id, service, duration, price, date, time, name, email, phone, notes, payment_intent_id, pay_method, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ref, location, staffId || null, service, duration, price, date, time, name, email, phone,
        notes || null, paymentIntentId || null, payMethod || 'unknown', status]
     );
 
@@ -304,6 +350,80 @@ app.get('/api/admin/stats', adminAuth, async (req, res) => {
   }
 });
 
+// ── GET /api/admin/staff ──
+app.get('/api/admin/staff', adminAuth, async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      `SELECT s.id, s.name, s.location, s.active,
+              GROUP_CONCAT(ss.day_of_week ORDER BY ss.day_of_week) AS schedule_days
+       FROM staff s
+       LEFT JOIN staff_schedule ss ON ss.staff_id = s.id
+       GROUP BY s.id
+       ORDER BY s.location, s.id`
+    );
+    const staff = rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      location: r.location,
+      active: !!r.active,
+      schedule: r.schedule_days ? r.schedule_days.split(',').map(Number) : []
+    }));
+    res.json(staff);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/admin/staff ──
+app.post('/api/admin/staff', adminAuth, async (req, res) => {
+  const { name, location, schedule } = req.body;
+  if (!name || !location) return res.status(400).json({ error: 'name and location are required' });
+  try {
+    const [result] = await db.execute(
+      'INSERT INTO staff (name, location) VALUES (?, ?)',
+      [name, location]
+    );
+    const staffId = result.insertId;
+    if (schedule && schedule.length) {
+      for (const day of schedule) {
+        await db.execute(
+          'INSERT IGNORE INTO staff_schedule (staff_id, day_of_week) VALUES (?, ?)',
+          [staffId, day]
+        );
+      }
+    }
+    res.json({ success: true, id: staffId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── PATCH /api/admin/staff/:id ──
+app.patch('/api/admin/staff/:id', adminAuth, async (req, res) => {
+  const { name, active, schedule } = req.body;
+  const id = req.params.id;
+  try {
+    if (name !== undefined) {
+      await db.execute('UPDATE staff SET name = ? WHERE id = ?', [name, id]);
+    }
+    if (active !== undefined) {
+      await db.execute('UPDATE staff SET active = ? WHERE id = ?', [active ? 1 : 0, id]);
+    }
+    if (schedule !== undefined) {
+      await db.execute('DELETE FROM staff_schedule WHERE staff_id = ?', [id]);
+      for (const day of schedule) {
+        await db.execute(
+          'INSERT IGNORE INTO staff_schedule (staff_id, day_of_week) VALUES (?, ?)',
+          [id, day]
+        );
+      }
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── PATCH /api/admin/bookings/:ref ──
 app.patch('/api/admin/bookings/:ref', adminAuth, async (req, res) => {
   const { status } = req.body;
@@ -419,5 +539,66 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
+// ── MIGRATE ──
+async function migrate() {
+  // 1. Create staff table
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS staff (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      location VARCHAR(50) NOT NULL,
+      active TINYINT(1) DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // 2. Create staff_schedule table
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS staff_schedule (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      staff_id INT NOT NULL,
+      day_of_week TINYINT NOT NULL,
+      UNIQUE KEY uq_staff_day (staff_id, day_of_week)
+    )
+  `);
+
+  // 3. Add staff_id column to bookings if it doesn't exist
+  try {
+    await db.execute('ALTER TABLE bookings ADD COLUMN staff_id INT NULL AFTER location');
+  } catch (err) {
+    // Column already exists — ignore
+  }
+
+  // 4. Seed staff if table is empty
+  const [[{ count }]] = await db.execute('SELECT COUNT(*) as count FROM staff');
+  if (count === 0) {
+    const seed = [
+      { name: 'Terapeuta A', location: 'saldanha', days: [0,1,2,3,4,5,6] },
+      { name: 'Terapeuta B', location: 'saldanha', days: [0,1,2,3,4,5,6] },
+      { name: 'Terapeuta A', location: 'caparica', days: [0,1,2,3,4,5,6] },
+      { name: 'Terapeuta B', location: 'caparica', days: [0,1,2,3,4,5,6] },
+      { name: 'Terapeuta C', location: 'caparica', days: [0,3,5,6] },
+    ];
+    for (const s of seed) {
+      const [result] = await db.execute(
+        'INSERT INTO staff (name, location) VALUES (?, ?)',
+        [s.name, s.location]
+      );
+      for (const day of s.days) {
+        await db.execute(
+          'INSERT IGNORE INTO staff_schedule (staff_id, day_of_week) VALUES (?, ?)',
+          [result.insertId, day]
+        );
+      }
+    }
+    console.log('Staff seeded successfully.');
+  }
+}
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`BTM API running on port ${PORT}`));
+migrate().then(() => {
+  app.listen(PORT, () => console.log(`BTM API running on port ${PORT}`));
+}).catch(err => {
+  console.error('Migration failed:', err);
+  process.exit(1);
+});

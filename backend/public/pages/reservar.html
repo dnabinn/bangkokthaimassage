@@ -776,6 +776,37 @@
       .step-dot__label { display: none; }
       .time-grid { grid-template-columns: repeat(3, 1fr); }
     }
+
+    /* ── STEP 4: THERAPIST ── */
+    .staff-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .staff-card {
+      border: 2px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem 1rem;
+      text-align: center;
+      background: var(--white);
+      transition: var(--transition);
+    }
+    .staff-card.available { border-color: #27AE60; cursor: pointer; }
+    .staff-card.available:hover { background: #F0FAF5; }
+    .staff-card.available.selected { background: #E8F8EF; box-shadow: 0 0 0 3px rgba(39,174,96,0.15); }
+    .staff-card.busy { border-color: #E74C3C; opacity: 0.65; cursor: default; }
+    .staff-card__avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--green-deep); color: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin: 0 auto 0.75rem;
+    }
+    .staff-card.busy .staff-card__avatar { background: #E74C3C; color: #fff; }
+    .staff-card__name { font-size: 0.88rem; font-weight: 500; color: var(--text-dark); margin-bottom: 0.3rem; }
+    .staff-card__status { font-size: 0.65rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
+    .staff-card.available .staff-card__status { color: #27AE60; }
+    .staff-card.busy .staff-card__status { color: #E74C3C; }
   </style>
 </head>
 <body>
@@ -825,11 +856,16 @@
         <div class="step-line" id="sline3"></div>
         <div class="step-dot" id="sdot4">
           <div class="step-dot__circle">4</div>
-          <span class="step-dot__label" data-pt="Dados" data-en="Details">Dados</span>
+          <span class="step-dot__label" data-pt="Terapeuta" data-en="Therapist">Terapeuta</span>
         </div>
         <div class="step-line" id="sline4"></div>
         <div class="step-dot" id="sdot5">
           <div class="step-dot__circle">5</div>
+          <span class="step-dot__label" data-pt="Dados" data-en="Details">Dados</span>
+        </div>
+        <div class="step-line" id="sline5"></div>
+        <div class="step-dot" id="sdot6">
+          <div class="step-dot__circle">6</div>
           <span class="step-dot__label" data-pt="Pagamento" data-en="Payment">Pagamento</span>
         </div>
       </div>
@@ -898,8 +934,19 @@
         </div>
       </div>
 
-      <!-- ══ STEP 4: DETAILS ══ -->
+      <!-- ══ STEP 4: THERAPIST ══ -->
       <div class="step-panel" id="sp4">
+        <h2 class="step-title" data-pt="Escolha o seu terapeuta" data-en="Choose your therapist">Escolha o seu terapeuta</h2>
+        <p class="step-sub" data-pt="Selecione o terapeuta disponível para a sua sessão." data-en="Select an available therapist for your session.">Selecione o terapeuta disponível para a sua sessão.</p>
+        <div class="staff-grid" id="staffGrid"></div>
+        <div class="step-nav">
+          <button class="btn-back-step" onclick="goStep(3)">← <span data-pt="Voltar" data-en="Back">Voltar</span></button>
+          <button class="btn-next" id="btn4" disabled onclick="goStep(5)" data-pt="Continuar →" data-en="Continue →">Continuar →</button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 5: DETAILS ══ -->
+      <div class="step-panel" id="sp5">
         <h2 class="step-title" data-pt="Os seus dados" data-en="Your details">Os seus dados</h2>
         <p class="step-sub" data-pt="Preencha os seus dados para confirmar a reserva." data-en="Fill in your details to confirm the booking.">Preencha os seus dados para confirmar a reserva.</p>
         <div class="form-grid-2">
@@ -929,13 +976,13 @@
           <textarea class="form-textarea" id="fNotes" placeholder="Alergias, lesões, preferências de pressão..."></textarea>
         </div>
         <div class="step-nav">
-          <button class="btn-back-step" onclick="goStep(3)">← <span data-pt="Voltar" data-en="Back">Voltar</span></button>
-          <button class="btn-next" id="btn4" disabled onclick="goStep(5)" data-pt="Continuar →" data-en="Continue →">Continuar →</button>
+          <button class="btn-back-step" onclick="goStep(4)">← <span data-pt="Voltar" data-en="Back">Voltar</span></button>
+          <button class="btn-next" id="btn5" disabled onclick="goStep(6)" data-pt="Continuar →" data-en="Continue →">Continuar →</button>
         </div>
       </div>
 
-      <!-- ══ STEP 5: PAYMENT ══ -->
-      <div class="step-panel" id="sp5">
+      <!-- ══ STEP 6: PAYMENT ══ -->
+      <div class="step-panel" id="sp6">
         <h2 class="step-title" data-pt="Pagamento" data-en="Payment">Pagamento</h2>
         <p class="step-sub" data-pt="Escolha o método de pagamento para confirmar a sua reserva." data-en="Choose your payment method to confirm your booking.">Escolha o método de pagamento para confirmar a sua reserva.</p>
 
@@ -989,13 +1036,13 @@
         </div>
 
         <div class="step-nav">
-          <button class="btn-back-step" onclick="goStep(4)">← <span data-pt="Voltar" data-en="Back">Voltar</span></button>
+          <button class="btn-back-step" onclick="goStep(5)">← <span data-pt="Voltar" data-en="Back">Voltar</span></button>
           <button class="btn-confirm" id="btnConfirm" onclick="confirmBooking()" data-pt="Confirmar Reserva" data-en="Confirm Booking">Confirmar Reserva</button>
         </div>
       </div>
 
       <!-- ══ CONFIRMATION ══ -->
-      <div class="step-panel" id="sp6">
+      <div class="step-panel" id="sp7">
         <div class="confirm-screen">
           <div class="confirm-check">✓</div>
           <h2 class="confirm-title" data-pt="Reserva confirmada!" data-en="Booking confirmed!">Reserva confirmada!</h2>
@@ -1043,6 +1090,8 @@
     price: null,
     date: null,
     time: null,
+    staffId: null,
+    staffName: null,
     payMethod: 'card',
     cal: { year: null, month: null }
   };
@@ -1098,7 +1147,7 @@
   function goStep(n) {
     document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('sp' + n).classList.add('active');
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 6; i++) {
       const dot = document.getElementById('sdot' + i);
       const line = document.getElementById('sline' + i);
       dot.classList.toggle('active', i === n);
@@ -1110,6 +1159,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (n === 2 && B.location) renderServices();
     if (n === 3) initCalendar();
+    if (n === 4) loadStaff();
   }
 
   // ═══════════════════════════════════════
@@ -1261,7 +1311,46 @@
   }
 
   // ═══════════════════════════════════════
-  // STEP 4: DETAILS VALIDATION
+  // STEP 4: THERAPIST
+  // ═══════════════════════════════════════
+  async function loadStaff() {
+    const grid = document.getElementById('staffGrid');
+    grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem 0">A carregar…</p>';
+    document.getElementById('btn4').disabled = true;
+    B.staffId = null; B.staffName = null;
+    const dateStr = B.date.toISOString().split('T')[0];
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/staff?location=${B.location}&date=${dateStr}&time=${encodeURIComponent(B.time)}&duration=${B.duration}`);
+      const staff = await res.json();
+      renderStaffCards(staff);
+    } catch (_) {
+      grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem 0">Erro ao carregar terapeutas.</p>';
+    }
+  }
+
+  function renderStaffCards(staff) {
+    const isEn = currentLang === 'en';
+    document.getElementById('staffGrid').innerHTML = staff.map(s => `
+      <div class="staff-card ${s.available ? 'available' : 'busy'}" id="scard-${s.id}"
+           onclick="${s.available ? `selectStaff(${s.id}, '${s.name}', this)` : ''}">
+        <div class="staff-card__avatar">✦</div>
+        <div class="staff-card__name">${s.name}</div>
+        <div class="staff-card__status">${s.available ? (isEn ? 'Available' : 'Disponível') : (isEn ? 'Reserved' : 'Reservado')}</div>
+      </div>
+    `).join('');
+  }
+
+  function selectStaff(id, name, el) {
+    document.querySelectorAll('.staff-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    B.staffId = id;
+    B.staffName = name;
+    document.getElementById('btn4').disabled = false;
+    updateSidebar();
+  }
+
+  // ═══════════════════════════════════════
+  // STEP 5: DETAILS VALIDATION
   // ═══════════════════════════════════════
   function validateDetails() {
     const name  = document.getElementById('fName').value.trim();
@@ -1269,7 +1358,7 @@
     const email = document.getElementById('fEmail').value.trim();
     const phone = document.getElementById('fPhone').value.trim();
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    document.getElementById('btn4').disabled = !(name && last && emailOk && phone.length > 7);
+    document.getElementById('btn5').disabled = !(name && last && emailOk && phone.length > 7);
   }
 
   // ═══════════════════════════════════════
@@ -1318,7 +1407,8 @@
       date:     dateISO,
       time:     B.time,
       name, email, phone, notes,
-      payMethod: B.payMethod
+      payMethod: B.payMethod,
+      staffId: B.staffId
     };
 
     function showError(msg) {
@@ -1393,7 +1483,7 @@
           ? 'Thank you! Your session has been successfully booked. We sent a confirmation to your email.'
           : 'Obrigado! A sua sessão foi reservada com sucesso. Enviámos uma confirmação para o seu email.';
       }
-      goStep(6);
+      goStep(7);
       document.querySelectorAll('.steps-bar, .booking-sidebar').forEach(el => el.style.opacity = '0.3');
 
     } catch (err) {
@@ -1402,7 +1492,7 @@
   }
 
   function resetBooking() {
-    B.step=1; B.location=null; B.service=null; B.duration=null; B.price=null; B.date=null; B.time=null; B.payMethod='card';
+    B.step=1; B.location=null; B.service=null; B.duration=null; B.price=null; B.date=null; B.time=null; B.staffId=null; B.staffName=null; B.payMethod='card';
     document.querySelectorAll('.loc-pick-card').forEach(c=>c.classList.remove('selected'));
     document.querySelectorAll('.steps-bar, .booking-sidebar').forEach(el=>el.style.opacity='1');
     selectPayMethod('card');
@@ -1430,6 +1520,7 @@
         ${B.duration ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Duration':'Duração'}</span><span class="sum-row__val">${B.duration} min</span></div>` : ''}
         ${B.date ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Date':'Data'}</span><span class="sum-row__val">${dateStr}</span></div>` : ''}
         ${B.time ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Time':'Hora'}</span><span class="sum-row__val">${B.time}</span></div>` : ''}
+        ${B.staffName ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Therapist':'Terapeuta'}</span><span class="sum-row__val">${B.staffName}</span></div>` : ''}
         ${B.price ? `<div class="sum-row sum-row--total"><span class="sum-row__key">Total</span><span class="sum-row__val gold">€${B.price}</span></div>` : ''}
       </div>
       ${B.service ? `<button class="sidebar-edit" onclick="goStep(2)">${isEn?'Change service':'Alterar serviço'}</button>` : ''}
@@ -1483,6 +1574,7 @@
     window.toggleLang = function() {
       origToggle();
       if (B.step === 2 && B.location) renderServices();
+      if (B.step === 4) loadStaff();
       initCalendar();
       updateSidebar();
     };
