@@ -239,6 +239,11 @@ async function sendConfirmations({ ref, name, phone, email, location, service, d
       from: process.env.TWILIO_FROM_NUMBER,
       to: toPhone
     });
+  } catch (smsErr) {
+    console.error('Twilio SMS (customer) error:', smsErr.message);
+  }
+  // SMS to owner/staff
+  try {
     const staffPhone = location === 'saldanha'
       ? process.env.STAFF_PHONE_SALDANHA
       : process.env.STAFF_PHONE_CAPARICA;
@@ -250,7 +255,7 @@ async function sendConfirmations({ ref, name, phone, email, location, service, d
       });
     }
   } catch (smsErr) {
-    console.error('Twilio SMS error:', smsErr.message);
+    console.error('Twilio SMS (owner) error:', smsErr.message);
   }
   // Email to customer
   try {
