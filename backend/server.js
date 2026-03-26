@@ -429,6 +429,39 @@ app.patch('/api/admin/staff/:id', adminAuth, async (req, res) => {
   }
 });
 
+// ── POST /api/admin/bookings (manual / walk-in / phone) ──
+app.post('/api/admin/bookings', adminAuth, async (req, res) => {
+  const { location, service, duration, price, date, time, name, email, phone, notes, pay_method, staffId, status } = req.body;
+  const required = { location, service, duration, price, date, time, name, email, phone };
+  const missing  = Object.entries(required).filter(([, v]) => !v).map(([k]) => k);
+  if (missing.length) return res.status(400).json({ error: `Missing: ${missing.join(', ')}` });
+
+  const ref           = 'BTM-' + Math.floor(100000 + Math.random() * 900000);
+  const bookingStatus = status || 'confirmed';
+
+  try {
+    await db.execute(
+      `INSERT INTO bookings
+        (ref, location, staff_id, service, duration, price, date, time, name, email, phone, notes, pay_method, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ref, location, staffId || null, service, duration, price, date, time, name, email, phone,
+       notes || null, pay_method || 'cash', bookingStatus]
+    );
+    await db.execute(
+      'INSERT IGNORE INTO blocked_slots (location, date, time) VALUES (?, ?, ?)',
+      [location, date, time]
+    );
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+
+  if (bookingStatus === 'confirmed') {
+    await sendConfirmations({ ref, name, phone, email, location, service, duration, date, time, price });
+  }
+
+  res.json({ success: true, ref });
+});
+
 // ── PATCH /api/admin/bookings/:ref ──
 app.patch('/api/admin/bookings/:ref', adminAuth, async (req, res) => {
   const { status } = req.body;
@@ -570,6 +603,13 @@ async function migrate() {
   // 3. Add staff_id column to bookings if it doesn't exist
   try {
     await db.execute('ALTER TABLE bookings ADD COLUMN staff_id INT NULL AFTER location');
+  } catch (err) {
+    // Column already exists — ignore
+  }
+
+  // 3b. Add group_size column if it doesn't exist
+  try {
+    await db.execute('ALTER TABLE bookings ADD COLUMN group_size INT DEFAULT 1 AFTER staff_id');
   } catch (err) {
     // Column already exists — ignore
   }

@@ -229,6 +229,49 @@
     .days-picker label { display: flex; align-items: center; gap: 3px; font-size: 12px; cursor: pointer; }
     .days-picker input[type=checkbox] { accent-color: var(--teal); }
 
+    /* ── MANUAL BOOKING MODAL ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: 10px; padding: 32px;
+      width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    }
+    .modal-box h2 { font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+    .modal-box p  { font-size: 18px; color: var(--green); margin-bottom: 24px; }
+    .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .modal-grid .full { grid-column: 1 / -1; }
+    .modal-field { display: flex; flex-direction: column; gap: 5px; }
+    .modal-field label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+    .modal-field input,
+    .modal-field select,
+    .modal-field textarea {
+      padding: 9px 12px; border: 1px solid var(--border); border-radius: 5px;
+      font-size: 13px; font-family: inherit; outline: none; background: #fff;
+    }
+    .modal-field input:focus,
+    .modal-field select:focus,
+    .modal-field textarea:focus { border-color: var(--gold); }
+    .modal-field textarea { resize: vertical; min-height: 60px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .btn-modal-cancel {
+      padding: 9px 20px; background: none; border: 1px solid var(--border);
+      border-radius: 5px; font-size: 13px; cursor: pointer; font-family: inherit;
+      color: var(--muted); transition: all .2s;
+    }
+    .btn-modal-cancel:hover { border-color: var(--text); color: var(--text); }
+    .btn-modal-submit {
+      padding: 9px 24px; background: var(--green); color: #fff;
+      border: none; border-radius: 5px; font-size: 13px; cursor: pointer;
+      font-family: inherit; letter-spacing: 0.05em; transition: background .2s;
+    }
+    .btn-modal-submit:hover { background: var(--teal); }
+    #modal-result { font-size: 13px; margin-top: 12px; text-align: center; }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 600px) {
       main { padding: 16px; }
@@ -238,6 +281,90 @@
   </style>
 </head>
 <body>
+
+<!-- MANUAL BOOKING MODAL -->
+<div class="modal-overlay" id="manualModal">
+  <div class="modal-box">
+    <h2>Bangkok Thai Massage</h2>
+    <p>Nova Reserva Manual</p>
+    <div class="modal-grid">
+      <div class="modal-field">
+        <label>Local</label>
+        <select id="mb-location">
+          <option value="saldanha">Saldanha</option>
+          <option value="caparica">Costa da Caparica</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Estado</label>
+        <select id="mb-status">
+          <option value="confirmed">Confirmado</option>
+          <option value="pending">Pendente</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Data</label>
+        <input type="date" id="mb-date">
+      </div>
+      <div class="modal-field">
+        <label>Hora</label>
+        <input type="time" id="mb-time" step="1800">
+      </div>
+      <div class="modal-field full">
+        <label>Serviço</label>
+        <input type="text" id="mb-service" placeholder="Massagem Tradicional Thai">
+      </div>
+      <div class="modal-field">
+        <label>Duração (min)</label>
+        <select id="mb-duration">
+          <option value="30">30 min</option>
+          <option value="45">45 min</option>
+          <option value="60" selected>60 min</option>
+          <option value="90">90 min</option>
+          <option value="120">120 min</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Preço (€)</label>
+        <input type="number" id="mb-price" placeholder="50" min="0" step="0.01">
+      </div>
+      <div class="modal-field">
+        <label>Nome completo</label>
+        <input type="text" id="mb-name" placeholder="Ana Silva">
+      </div>
+      <div class="modal-field">
+        <label>Telemóvel</label>
+        <input type="tel" id="mb-phone" placeholder="+351 91 000 0000">
+      </div>
+      <div class="modal-field full">
+        <label>Email</label>
+        <input type="email" id="mb-email" placeholder="ana@email.com">
+      </div>
+      <div class="modal-field">
+        <label>Pagamento</label>
+        <select id="mb-paymethod">
+          <option value="cash">Dinheiro</option>
+          <option value="card">Cartão</option>
+          <option value="mbway">MB WAY</option>
+          <option value="whatsapp">WhatsApp / Local</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Terapeuta (opcional)</label>
+        <select id="mb-staff"><option value="">— Auto —</option></select>
+      </div>
+      <div class="modal-field full">
+        <label>Notas</label>
+        <textarea id="mb-notes" placeholder="Walk-in, preferências, alergias…"></textarea>
+      </div>
+    </div>
+    <div id="modal-result"></div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeManualBooking()">Cancelar</button>
+      <button class="btn-modal-submit" onclick="submitManualBooking()">Confirmar Reserva</button>
+    </div>
+  </div>
+</div>
 
 <!-- LOGIN -->
 <div id="login-screen">
@@ -261,9 +388,12 @@
   </header>
 
   <main>
-    <div class="tab-bar">
-      <button class="tab-btn active" id="tab-reservas" onclick="switchTab('reservas')">Reservas</button>
-      <button class="tab-btn" id="tab-equipa" onclick="switchTab('equipa')">Equipa</button>
+    <div class="tab-bar" style="justify-content:space-between;align-items:center">
+      <div style="display:flex">
+        <button class="tab-btn active" id="tab-reservas" onclick="switchTab('reservas')">Reservas</button>
+        <button class="tab-btn" id="tab-equipa" onclick="switchTab('equipa')">Equipa</button>
+      </div>
+      <button class="btn-filter" style="margin-bottom:2px" onclick="openManualBooking()">+ Nova Reserva</button>
     </div>
 
     <div id="tab-reservas-content">
@@ -625,6 +755,80 @@
     });
     loadStaff();
   }
+
+  // ── MANUAL BOOKING ──
+  async function openManualBooking() {
+    // Pre-fill today's date
+    document.getElementById('mb-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('modal-result').textContent = '';
+    // Populate staff dropdown
+    const staffSel = document.getElementById('mb-staff');
+    staffSel.innerHTML = '<option value="">— Auto —</option>';
+    try {
+      const res = await fetch(`${API}/api/admin/staff`, { headers: { 'x-admin-password': adminPw } });
+      const staff = await res.json();
+      staff.filter(s => s.active).forEach(s => {
+        staffSel.innerHTML += `<option value="${s.id}">[${s.location === 'saldanha' ? 'Sal' : 'Cap'}] ${esc(s.name)}</option>`;
+      });
+    } catch (_) {}
+    document.getElementById('manualModal').classList.add('open');
+  }
+
+  function closeManualBooking() {
+    document.getElementById('manualModal').classList.remove('open');
+  }
+
+  async function submitManualBooking() {
+    const resultEl = document.getElementById('modal-result');
+    resultEl.style.color = 'var(--muted)';
+    resultEl.textContent = 'A guardar…';
+
+    const location  = document.getElementById('mb-location').value;
+    const status    = document.getElementById('mb-status').value;
+    const date      = document.getElementById('mb-date').value;
+    const time      = document.getElementById('mb-time').value;
+    const service   = document.getElementById('mb-service').value.trim();
+    const duration  = document.getElementById('mb-duration').value;
+    const price     = document.getElementById('mb-price').value;
+    const name      = document.getElementById('mb-name').value.trim();
+    const phone     = document.getElementById('mb-phone').value.trim();
+    const email     = document.getElementById('mb-email').value.trim();
+    const pay_method= document.getElementById('mb-paymethod').value;
+    const staffId   = document.getElementById('mb-staff').value || null;
+    const notes     = document.getElementById('mb-notes').value.trim();
+
+    if (!date || !time || !service || !price || !name || !phone || !email) {
+      resultEl.style.color = 'var(--red)';
+      resultEl.textContent = 'Por favor preencha todos os campos obrigatórios.';
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API}/api/admin/bookings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPw },
+        body: JSON.stringify({ location, service, duration, price: parseFloat(price), date, time, name, email, phone, notes, pay_method, staffId, status })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      resultEl.style.color = '#2e7d32';
+      resultEl.textContent = `✓ Reserva criada: ${data.ref}`;
+      setTimeout(() => {
+        closeManualBooking();
+        loadBookings();
+        fetch(`${API}/api/admin/stats`, { headers: { 'x-admin-password': adminPw } })
+          .then(r => r.json()).then(renderStats);
+      }, 1200);
+    } catch (err) {
+      resultEl.style.color = 'var(--red)';
+      resultEl.textContent = 'Erro: ' + err.message;
+    }
+  }
+
+  // Close modal on overlay click
+  document.getElementById('manualModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('manualModal')) closeManualBooking();
+  });
 
   async function addStaff() {
     const name = document.getElementById('new-staff-name').value.trim();

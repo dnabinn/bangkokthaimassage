@@ -777,7 +777,41 @@
       .time-grid { grid-template-columns: repeat(3, 1fr); }
     }
 
+    /* ── GROUP SIZE PICKER ── */
+    .group-size-wrap {
+      margin-top: 1.5rem;
+      display: none;
+      align-items: center;
+      gap: 1.25rem;
+      padding: 1.1rem 1.5rem;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .group-size-wrap.visible { display: flex; }
+    .group-label {
+      font-size: 0.78rem; font-weight: 500; color: var(--text-dark);
+      letter-spacing: 0.04em; flex: 1;
+    }
+    .group-counter { display: flex; align-items: center; gap: 0.75rem; }
+    .group-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1.5px solid var(--border); background: var(--white);
+      color: var(--text-dark); font-size: 1.1rem; cursor: pointer;
+      transition: var(--transition); display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+    }
+    .group-btn:hover:not(:disabled) { border-color: var(--green-mid); color: var(--green-mid); }
+    .group-btn:disabled { opacity: 0.3; cursor: default; }
+    .group-count { font-size: 1.1rem; font-weight: 500; min-width: 20px; text-align: center; color: var(--text-dark); }
+    .group-max-note { font-size: 0.7rem; color: var(--text-muted); }
+
     /* ── STEP 4: THERAPIST ── */
+    .staff-person-section { margin-bottom: 1.5rem; }
+    .staff-person-label {
+      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 0.6rem;
+    }
     .staff-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -890,6 +924,16 @@
             <div class="loc-pick-card__hours"><span>◷</span> <span data-pt="Seg – Sáb: 10h – 21h · Dom: 11h – 21h" data-en="Mon – Sat: 10am – 9pm · Sun: 11am – 9pm">Seg – Sáb: 10h – 21h · Dom: 11h – 21h</span></div>
           </div>
         </div>
+        <div class="group-size-wrap" id="groupSizeWrap">
+          <span class="group-label" data-pt="Número de pessoas" data-en="Number of people">Número de pessoas</span>
+          <div class="group-counter">
+            <button class="group-btn" id="groupMinus" onclick="adjustGroup(-1)">−</button>
+            <span class="group-count" id="groupDisplay">1</span>
+            <button class="group-btn" id="groupPlus" onclick="adjustGroup(1)">+</button>
+          </div>
+          <span class="group-max-note" id="groupMaxNote"></span>
+        </div>
+
         <div class="step-nav">
           <span></span>
           <button class="btn-next" id="btn1" disabled onclick="goStep(2)" data-pt="Continuar →" data-en="Continue →">Continuar →</button>
@@ -1092,9 +1136,12 @@
     time: null,
     staffId: null,
     staffName: null,
+    groupSize: 1,
+    staffSelections: [],  // [{staffId, staffName}, ...] one per person
     payMethod: 'card',
     cal: { year: null, month: null }
   };
+  let _cachedStaff = [];
 
   // ── SERVICE DATA ──
   const SERVICES = {
@@ -1170,7 +1217,27 @@
     el.classList.add('selected');
     B.location = loc;
     B.service = null; B.duration = null; B.price = null;
+    B.groupSize = 1; B.staffSelections = [];
     document.getElementById('btn1').disabled = false;
+    updateGroupPicker();
+    updateSidebar();
+  }
+
+  function updateGroupPicker() {
+    const maxPeople = B.location === 'caparica' ? 3 : 2;
+    const isEn = currentLang === 'en';
+    document.getElementById('groupSizeWrap').classList.add('visible');
+    document.getElementById('groupDisplay').textContent = B.groupSize;
+    document.getElementById('groupMaxNote').textContent = `(${isEn ? 'max' : 'máx'} ${maxPeople})`;
+    document.getElementById('groupMinus').disabled = B.groupSize <= 1;
+    document.getElementById('groupPlus').disabled  = B.groupSize >= maxPeople;
+  }
+
+  function adjustGroup(delta) {
+    const maxPeople = B.location === 'caparica' ? 3 : 2;
+    B.groupSize = Math.max(1, Math.min(maxPeople, B.groupSize + delta));
+    B.staffSelections = new Array(B.groupSize).fill(null);
+    updateGroupPicker();
     updateSidebar();
   }
 
@@ -1296,10 +1363,23 @@
   }
 
   function fillSlots(id, slots) {
+    const now = new Date();
+    const isToday = B.date &&
+      B.date.getDate() === now.getDate() &&
+      B.date.getMonth() === now.getMonth() &&
+      B.date.getFullYear() === now.getFullYear();
     document.getElementById(id).innerHTML = slots.map(t => {
       const taken = TAKEN.includes(t);
+      let pastTime = false;
+      if (isToday) {
+        const [hh, mm] = t.split(':').map(Number);
+        const slotMins = hh * 60 + mm;
+        const nowMins  = now.getHours() * 60 + now.getMinutes() + 30; // 30 min min notice
+        pastTime = slotMins <= nowMins;
+      }
+      const disabled = taken || pastTime;
       const sel = B.time === t;
-      return `<button class="time-btn${taken?' taken':''}${sel?' selected':''}" onclick="${taken?'':'pickTime(\''+t+'\')'}"">${t}</button>`;
+      return `<button class="time-btn${disabled?' taken':''}${sel?' selected':''}" onclick="${disabled?'':'pickTime(\''+t+'\')'}">${t}</button>`;
     }).join('');
   }
 
@@ -1314,38 +1394,69 @@
   // STEP 4: THERAPIST
   // ═══════════════════════════════════════
   async function loadStaff() {
-    const grid = document.getElementById('staffGrid');
-    grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem 0">A carregar…</p>';
+    const container = document.getElementById('staffGrid');
+    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem 0">A carregar…</p>';
     document.getElementById('btn4').disabled = true;
+    B.staffSelections = new Array(B.groupSize).fill(null);
     B.staffId = null; B.staffName = null;
     const dateStr = B.date.toISOString().split('T')[0];
     try {
       const res = await fetch(`${BACKEND_URL}/api/staff?location=${B.location}&date=${dateStr}&time=${encodeURIComponent(B.time)}&duration=${B.duration}`);
-      const staff = await res.json();
-      renderStaffCards(staff);
+      _cachedStaff = await res.json();
+      renderMultiStaffSections();
     } catch (_) {
-      grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem 0">Erro ao carregar terapeutas.</p>';
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem 0">Erro ao carregar terapeutas.</p>';
     }
   }
 
-  function renderStaffCards(staff) {
+  function renderMultiStaffSections() {
     const isEn = currentLang === 'en';
-    document.getElementById('staffGrid').innerHTML = staff.map(s => `
-      <div class="staff-card ${s.available ? 'available' : 'busy'}" id="scard-${s.id}"
-           onclick="${s.available ? `selectStaff(${s.id}, '${s.name}', this)` : ''}">
-        <div class="staff-card__avatar">✦</div>
-        <div class="staff-card__name">${s.name}</div>
-        <div class="staff-card__status">${s.available ? (isEn ? 'Available' : 'Disponível') : (isEn ? 'Reserved' : 'Reservado')}</div>
-      </div>
-    `).join('');
+    const container = document.getElementById('staffGrid');
+    container.innerHTML = '';
+    for (let i = 0; i < B.groupSize; i++) {
+      const section = document.createElement('div');
+      section.className = 'staff-person-section';
+      if (B.groupSize > 1) {
+        const lbl = document.createElement('div');
+        lbl.className = 'staff-person-label';
+        lbl.textContent = (isEn ? 'Person ' : 'Pessoa ') + (i + 1);
+        section.appendChild(lbl);
+      }
+      const grid = document.createElement('div');
+      grid.className = 'staff-grid';
+      grid.id = 'staffGrid-' + i;
+      section.appendChild(grid);
+      container.appendChild(section);
+      renderStaffCardsForPerson(i);
+    }
   }
 
-  function selectStaff(id, name, el) {
-    document.querySelectorAll('.staff-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    B.staffId = id;
-    B.staffName = name;
-    document.getElementById('btn4').disabled = false;
+  function renderStaffCardsForPerson(personIdx) {
+    const isEn = currentLang === 'en';
+    const takenIds = B.staffSelections
+      .filter((s, i) => s !== null && i !== personIdx)
+      .map(s => s.staffId);
+    const grid = document.getElementById('staffGrid-' + personIdx);
+    if (!grid) return;
+    grid.innerHTML = _cachedStaff.map(s => {
+      const takenByOther = takenIds.includes(s.id);
+      const unavailable  = !s.available || takenByOther;
+      const isSelected   = B.staffSelections[personIdx]?.staffId === s.id;
+      return `<div class="staff-card ${unavailable ? 'busy' : 'available'}${isSelected ? ' selected' : ''}"
+           onclick="${unavailable ? '' : `selectStaffForPerson(${personIdx}, ${s.id}, '${s.name}')`}">
+        <div class="staff-card__avatar">✦</div>
+        <div class="staff-card__name">${s.name}</div>
+        <div class="staff-card__status">${unavailable ? (isEn ? 'Reserved' : 'Reservado') : (isEn ? 'Available' : 'Disponível')}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function selectStaffForPerson(personIdx, staffId, staffName) {
+    B.staffSelections[personIdx] = { staffId, staffName };
+    // Back-compat: keep B.staffId/staffName pointing to person 0
+    if (personIdx === 0) { B.staffId = staffId; B.staffName = staffName; }
+    for (let i = 0; i < B.groupSize; i++) renderStaffCardsForPerson(i);
+    document.getElementById('btn4').disabled = !B.staffSelections.every(s => s !== null);
     updateSidebar();
   }
 
@@ -1399,7 +1510,10 @@
     const svcName = isEn ? B.service.nameEn : B.service.name;
     const dateISO = B.date.toISOString().split('T')[0];
 
-    const bookingPayload = {
+    const totalPrice = B.price * B.groupSize;
+
+    // Build one base payload per person
+    const makePayload = (personIdx) => ({
       location: B.location,
       service:  svcName,
       duration: B.duration,
@@ -1408,8 +1522,9 @@
       time:     B.time,
       name, email, phone, notes,
       payMethod: B.payMethod,
-      staffId: B.staffId
-    };
+      staffId: B.staffSelections[personIdx]?.staffId || null
+    });
+    const bookingPayload = makePayload(0); // used for single-person / payment amount
 
     function showError(msg) {
       const el = document.getElementById('stripe-card-errors');
@@ -1422,60 +1537,73 @@
     try {
       let ref;
 
+      const allRefs = [];
+
       if (B.payMethod === 'whatsapp') {
-        const res  = await fetch(`${BACKEND_URL}/api/book`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(bookingPayload) });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        ref = data.ref;
+        for (let pi = 0; pi < B.groupSize; pi++) {
+          const res  = await fetch(`${BACKEND_URL}/api/book`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(makePayload(pi)) });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          allRefs.push(data.ref);
+        }
+        ref = allRefs[0];
         const dateStr = B.date.toLocaleDateString(isEn ? 'en-GB' : 'pt-PT', { weekday:'long', day:'numeric', month:'long' });
-        const msg = encodeURIComponent(`Olá! Reserva: ${ref}\n📍 ${loc.name}\n💆 ${svcName} — ${B.duration} min\n📅 ${dateStr} às ${B.time}\n👤 ${name}`);
+        const msg = encodeURIComponent(`Olá! Reserva: ${allRefs.join(' & ')}\n📍 ${loc.name}\n💆 ${svcName} — ${B.duration} min\n👥 ${B.groupSize} ${B.groupSize > 1 ? 'pessoas' : 'pessoa'}\n📅 ${dateStr} às ${B.time}\n👤 ${name}`);
         window.open(loc.wa + '?text=' + msg, '_blank');
 
       } else if (B.payMethod === 'mbway') {
         const mbwayPhone = document.getElementById('mbwayNum').value.trim();
-        // Confirm MB WAY server-side — Stripe sends push notification to customer's app
-        const mbRes  = await fetch(`${BACKEND_URL}/api/mbway-charge`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ phone: mbwayPhone, amount: B.price }) });
+        const mbRes  = await fetch(`${BACKEND_URL}/api/mbway-charge`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ phone: mbwayPhone, amount: totalPrice }) });
         const mbData = await mbRes.json();
         if (!mbRes.ok) throw new Error(mbData.error);
-        // Save booking (payment pending customer approval in MB WAY app)
-        const res  = await fetch(`${BACKEND_URL}/api/book`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ...bookingPayload, paymentIntentId: mbData.paymentIntentId, payMethod: 'mbway' }) });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        ref = data.ref;
+        // First person gets the paymentIntentId; rest are linked
+        for (let pi = 0; pi < B.groupSize; pi++) {
+          const payload = { ...makePayload(pi), paymentIntentId: pi === 0 ? mbData.paymentIntentId : null, payMethod: 'mbway' };
+          const res  = await fetch(`${BACKEND_URL}/api/book`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          allRefs.push(data.ref);
+        }
+        ref = allRefs[0];
 
       } else {
-        // Stripe card
-        const piRes  = await fetch(`${BACKEND_URL}/api/create-payment-intent`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ amount: B.price }) });
+        // Stripe card — charge total for all people
+        const piRes  = await fetch(`${BACKEND_URL}/api/create-payment-intent`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ amount: totalPrice }) });
         const piData = await piRes.json();
         if (!piRes.ok) throw new Error(piData.error);
         const { paymentIntent, error: stripeErr } = await stripe.confirmCardPayment(piData.clientSecret, { payment_method: { card: cardElement } });
         if (stripeErr) throw new Error(stripeErr.message);
-        const res  = await fetch(`${BACKEND_URL}/api/book`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ...bookingPayload, paymentIntentId: paymentIntent.id }) });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        ref = data.ref;
+        for (let pi = 0; pi < B.groupSize; pi++) {
+          const payload = { ...makePayload(pi), paymentIntentId: pi === 0 ? paymentIntent.id : null };
+          const res  = await fetch(`${BACKEND_URL}/api/book`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          allRefs.push(data.ref);
+        }
+        ref = allRefs[0];
       }
 
       // ── Show confirmation screen ──
       const dateStr = B.date.toLocaleDateString(isEn ? 'en-GB' : 'pt-PT', { weekday:'long', day:'numeric', month:'long' });
-      document.getElementById('confirmRef').textContent   = ref;
+      document.getElementById('confirmRef').textContent   = allRefs.join(' · ');
       document.getElementById('confirmEmail').textContent = email;
       document.getElementById('confirmAddr').textContent  = loc.addr;
       document.getElementById('confirmDetails').innerHTML = `
         <div class="sum-row"><span class="sum-row__key">${isEn?'Location':'Local'}</span><span class="sum-row__val">${loc.name}</span></div>
         <div class="sum-row"><span class="sum-row__key">${isEn?'Service':'Serviço'}</span><span class="sum-row__val">${svcName}</span></div>
         <div class="sum-row"><span class="sum-row__key">${isEn?'Duration':'Duração'}</span><span class="sum-row__val">${B.duration} min</span></div>
+        ${B.groupSize > 1 ? `<div class="sum-row"><span class="sum-row__key">${isEn?'People':'Pessoas'}</span><span class="sum-row__val">${B.groupSize}</span></div>` : ''}
         <div class="sum-row"><span class="sum-row__key">${isEn?'Date':'Data'}</span><span class="sum-row__val">${dateStr}</span></div>
         <div class="sum-row"><span class="sum-row__key">${isEn?'Time':'Hora'}</span><span class="sum-row__val">${B.time}</span></div>
-        <div class="sum-row sum-row--total"><span class="sum-row__key">Total</span><span class="sum-row__val gold">€${B.price}</span></div>
+        <div class="sum-row sum-row--total"><span class="sum-row__key">Total</span><span class="sum-row__val gold">€${totalPrice}</span></div>
       `;
       // MB WAY: show pending approval message instead of confirmed
       if (B.payMethod === 'mbway') {
         document.querySelector('.confirm-check').textContent = '⏳';
         document.querySelector('.confirm-title').textContent = isEn ? 'Awaiting MB WAY approval' : 'A aguardar aprovação MB WAY';
         document.querySelector('.confirm-sub').textContent   = isEn
-          ? 'Check your MB WAY app and approve the payment of €' + B.price + '. Your booking will be confirmed once approved.'
-          : 'Abra o seu app MB WAY e aprove o pagamento de €' + B.price + '. A sua reserva será confirmada após aprovação.';
+          ? 'Check your MB WAY app and approve the payment of €' + totalPrice + '. Your booking will be confirmed once approved.'
+          : 'Abra o seu app MB WAY e aprove o pagamento de €' + totalPrice + '. A sua reserva será confirmada após aprovação.';
       } else {
         document.querySelector('.confirm-check').textContent = '✓';
         document.querySelector('.confirm-title').textContent = isEn ? 'Booking confirmed!' : 'Reserva confirmada!';
@@ -1492,8 +1620,10 @@
   }
 
   function resetBooking() {
-    B.step=1; B.location=null; B.service=null; B.duration=null; B.price=null; B.date=null; B.time=null; B.staffId=null; B.staffName=null; B.payMethod='card';
+    B.step=1; B.location=null; B.service=null; B.duration=null; B.price=null; B.date=null; B.time=null;
+    B.staffId=null; B.staffName=null; B.groupSize=1; B.staffSelections=[]; B.payMethod='card';
     document.querySelectorAll('.loc-pick-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('groupSizeWrap').classList.remove('visible');
     document.querySelectorAll('.steps-bar, .booking-sidebar').forEach(el=>el.style.opacity='1');
     selectPayMethod('card');
     goStep(1);
@@ -1520,8 +1650,9 @@
         ${B.duration ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Duration':'Duração'}</span><span class="sum-row__val">${B.duration} min</span></div>` : ''}
         ${B.date ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Date':'Data'}</span><span class="sum-row__val">${dateStr}</span></div>` : ''}
         ${B.time ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Time':'Hora'}</span><span class="sum-row__val">${B.time}</span></div>` : ''}
-        ${B.staffName ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Therapist':'Terapeuta'}</span><span class="sum-row__val">${B.staffName}</span></div>` : ''}
-        ${B.price ? `<div class="sum-row sum-row--total"><span class="sum-row__key">Total</span><span class="sum-row__val gold">€${B.price}</span></div>` : ''}
+        ${B.groupSize > 1 ? `<div class="sum-row"><span class="sum-row__key">${isEn?'People':'Pessoas'}</span><span class="sum-row__val">${B.groupSize}</span></div>` : ''}
+        ${B.staffSelections.filter(Boolean).length > 0 ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Therapist(s)':'Terapeuta(s)'}</span><span class="sum-row__val">${B.staffSelections.filter(Boolean).map(s=>s.staffName).join(', ')}</span></div>` : ''}
+        ${B.price ? `<div class="sum-row sum-row--total"><span class="sum-row__key">Total</span><span class="sum-row__val gold">€${B.price * B.groupSize}</span></div>` : ''}
       </div>
       ${B.service ? `<button class="sidebar-edit" onclick="goStep(2)">${isEn?'Change service':'Alterar serviço'}</button>` : ''}
       ${B.date ? `<button class="sidebar-edit" onclick="goStep(3)">${isEn?'Change date':'Alterar data'}</button>` : ''}
