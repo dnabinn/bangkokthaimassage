@@ -753,10 +753,58 @@ async function migrate() {
   }
 }
 
+async function assignUnassigned() {
+  function toMins(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+
+  const [unassigned] = await db.execute(
+    `SELECT ref, location, date, time, duration FROM bookings
+     WHERE status = 'confirmed' AND staff_id IS NULL`
+  );
+  if (unassigned.length === 0) return;
+  console.log(`Auto-assigning therapists to ${unassigned.length} unassigned confirmed booking(s)...`);
+
+  for (const booking of unassigned) {
+    const dayOfWeek = new Date(booking.date + 'T12:00:00').getDay();
+    const [staffRows] = await db.execute(
+      `SELECT s.id FROM staff s
+       JOIN staff_schedule ss ON ss.staff_id = s.id
+       WHERE s.location = ? AND s.active = 1 AND ss.day_of_week = ?`,
+      [booking.location, dayOfWeek]
+    );
+    const [conflicts] = await db.execute(
+      `SELECT staff_id, time, duration FROM bookings
+       WHERE location = ? AND date = ? AND status != 'cancelled'
+         AND staff_id IS NOT NULL AND ref != ?`,
+      [booking.location, booking.date, booking.ref]
+    );
+    const bStart = toMins(booking.time);
+    const bEnd   = bStart + parseInt(booking.duration) + 15;
+    const busyIds = new Set(
+      conflicts
+        .filter(c => {
+          const cStart = toMins(c.time);
+          const cEnd   = cStart + parseInt(c.duration) + 15;
+          return bStart < cEnd && bEnd > cStart;
+        })
+        .map(c => Number(c.staff_id))
+    );
+    const freeStaff = staffRows.filter(s => !busyIds.has(Number(s.id)));
+    if (freeStaff.length > 0) {
+      const assigned = freeStaff[Math.floor(Math.random() * freeStaff.length)];
+      await db.execute('UPDATE bookings SET staff_id = ? WHERE ref = ?', [assigned.id, booking.ref]);
+      console.log(`  Assigned staff ${assigned.id} to booking ${booking.ref}`);
+    } else {
+      console.log(`  No free therapist found for booking ${booking.ref} (${booking.date} ${booking.time})`);
+    }
+  }
+}
+
 const PORT = process.env.PORT || 3000;
-migrate().then(() => {
-  app.listen(PORT, () => console.log(`BTM API running on port ${PORT}`));
-}).catch(err => {
-  console.error('Migration failed:', err);
-  process.exit(1);
-});
+migrate()
+  .then(() => assignUnassigned())
+  .then(() => {
+    app.listen(PORT, () => console.log(`BTM API running on port ${PORT}`));
+  }).catch(err => {
+    console.error('Startup failed:', err);
+    process.exit(1);
+  });
