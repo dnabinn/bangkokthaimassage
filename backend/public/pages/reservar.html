@@ -1280,6 +1280,20 @@
     const svc = SERVICES[B.location][idx];
     B.service = svc;
     B.duration = null; B.price = null;
+
+    // Couples massage: auto-lock to 2 people
+    const isCouples = id === 'casais';
+    if (isCouples) {
+      B.groupSize = 2;
+      B.staffSelections = [null, null];
+    }
+    // Update group picker (lock buttons if couples)
+    if (document.getElementById('groupSizeWrap').classList.contains('visible')) {
+      document.getElementById('groupDisplay').textContent = B.groupSize;
+      document.getElementById('groupMinus').disabled = isCouples || B.groupSize <= 1;
+      document.getElementById('groupPlus').disabled  = isCouples || B.groupSize >= (B.location === 'caparica' ? 3 : 2);
+    }
+
     document.getElementById('btn2').disabled = true;
     updateSidebar();
   }
@@ -1346,8 +1360,8 @@
   }
 
   async function renderTimeSlots() {
-    const morning   = ['09:00','09:30','10:00','10:30','11:00','11:30'];
-    const afternoon = ['12:00','13:00','14:00','14:30','15:00','15:30','16:00','16:30'];
+    const morning   = ['10:00','10:30','11:00','11:30'];
+    const afternoon = ['12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30'];
     const evening   = ['17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30'];
     const dateStr = B.date.toISOString().split('T')[0];
     try {
@@ -1413,6 +1427,18 @@
     const isEn = currentLang === 'en';
     const container = document.getElementById('staffGrid');
     container.innerHTML = '';
+
+    // Warn if not enough available therapists for the group
+    const availableCount = _cachedStaff.filter(s => s.available).length;
+    if (availableCount < B.groupSize) {
+      const warn = document.createElement('div');
+      warn.style.cssText = 'background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin-bottom:1rem;font-size:0.82rem;color:#856404;line-height:1.6';
+      warn.innerHTML = isEn
+        ? `⚠️ Only <strong>${availableCount}</strong> therapist(s) available for this time slot. Please go back and choose a different time.`
+        : `⚠️ Apenas <strong>${availableCount}</strong> terapeuta(s) disponível(is) para este horário. Por favor escolha outro horário.`;
+      container.appendChild(warn);
+    }
+
     for (let i = 0; i < B.groupSize; i++) {
       const section = document.createElement('div');
       section.className = 'staff-person-section';

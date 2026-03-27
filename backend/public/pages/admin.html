@@ -229,6 +229,49 @@
     .days-picker label { display: flex; align-items: center; gap: 3px; font-size: 12px; cursor: pointer; }
     .days-picker input[type=checkbox] { accent-color: var(--teal); }
 
+    /* ── PAGINATION ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; background: #fff; border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 8px 8px; font-size: 13px;
+    }
+    .pagination .page-info { color: var(--muted); }
+    .pagination .page-btns { display: flex; gap: 6px; }
+    .page-btn {
+      padding: 5px 14px; border: 1px solid var(--border); border-radius: 4px;
+      background: #fff; cursor: pointer; font-size: 12px; font-family: inherit;
+      transition: all .2s; color: var(--text);
+    }
+    .page-btn:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
+    .page-btn:disabled { opacity: 0.35; cursor: default; }
+    .page-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
+
+    /* ── SCHEDULE GRID ── */
+    .schedule-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 24px; }
+    .schedule-table { border-collapse: collapse; background: #fff; font-size: 12px; min-width: 100%; }
+    .schedule-table th {
+      background: var(--green); color: #fff; padding: 8px 6px;
+      text-align: center; font-size: 11px; white-space: nowrap; font-weight: 500;
+    }
+    .schedule-th-name { min-width: 130px; text-align: left !important; padding-left: 12px !important; }
+    .schedule-th-time { min-width: 58px; }
+    .schedule-name-cell {
+      padding: 8px 12px; font-weight: 500; font-size: 12px;
+      border-right: 2px solid var(--border); white-space: nowrap;
+      background: #fafaf8; color: var(--green); vertical-align: middle;
+    }
+    .schedule-free { background: #f9f9f9; border: 1px solid #eee; height: 42px; }
+    .schedule-busy {
+      background: var(--teal); color: #fff; border: 1px solid #0D2818;
+      padding: 4px 6px; vertical-align: top; cursor: default;
+    }
+    .schedule-booking { font-size: 10px; font-weight: 600; line-height: 1.3; }
+    .schedule-booking span { display: block; font-size: 9px; opacity: 0.85; font-weight: 400; }
+    .schedule-loc-row td {
+      background: var(--cream); color: var(--gold); font-size: 11px;
+      letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 12px; font-weight: 600;
+    }
+
     /* ── MANUAL BOOKING MODAL ── */
     .modal-overlay {
       display: none; position: fixed; inset: 0;
@@ -391,6 +434,7 @@
     <div class="tab-bar" style="justify-content:space-between;align-items:center">
       <div style="display:flex">
         <button class="tab-btn active" id="tab-reservas" onclick="switchTab('reservas')">Reservas</button>
+        <button class="tab-btn" id="tab-agenda" onclick="switchTab('agenda')">Agenda</button>
         <button class="tab-btn" id="tab-equipa" onclick="switchTab('equipa')">Equipa</button>
       </div>
       <button class="btn-filter" style="margin-bottom:2px" onclick="openManualBooking()">+ Nova Reserva</button>
@@ -442,6 +486,27 @@
       <!-- Bookings -->
       <div id="bookings-container">
         <div id="loading"><div class="spinner"></div>A carregar reservas…</div>
+      </div>
+    </div>
+
+    <div id="tab-agenda-content" style="display:none">
+      <div class="filters" style="margin-bottom:24px">
+        <div class="filter-group">
+          <label>Data</label>
+          <input type="date" id="schedule-date">
+        </div>
+        <div class="filter-group">
+          <label>Local</label>
+          <select id="schedule-loc">
+            <option value="">Todos</option>
+            <option value="saldanha">Saldanha</option>
+            <option value="caparica">Costa da Caparica</option>
+          </select>
+        </div>
+        <button class="btn-filter" onclick="loadSchedule()">Ver Agenda</button>
+      </div>
+      <div id="schedule-content">
+        <p style="color:var(--muted);text-align:center;padding:48px">Selecione uma data para ver a agenda dos terapeutas.</p>
       </div>
     </div>
 
@@ -581,9 +646,23 @@
       container.innerHTML = '<p style="text-align:center;color:#888;padding:48px">Nenhuma reserva encontrada.</p>';
       return;
     }
+    _allBookings = rows;
+    _page = 0;
+    renderPage();
+  }
+
+  let _allBookings = [], _page = 0;
+  const PAGE_SIZE = 10;
+
+  function renderPage() {
+    const container = document.getElementById('bookings-container');
+    const total = _allBookings.length;
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const start = _page * PAGE_SIZE;
+    const slice = _allBookings.slice(start, start + PAGE_SIZE);
 
     const grouped = { saldanha: [], caparica: [], other: [] };
-    rows.forEach(r => {
+    slice.forEach(r => {
       if (r.location === 'saldanha') grouped.saldanha.push(r);
       else if (r.location === 'caparica') grouped.caparica.push(r);
       else grouped.other.push(r);
@@ -603,27 +682,31 @@
             <table>
               <thead>
                 <tr>
-                  <th>Ref</th>
-                  <th>Data</th>
-                  <th>Hora</th>
-                  <th>Cliente</th>
-                  <th>Telefone</th>
-                  <th>Email</th>
-                  <th>Serviço</th>
-                  <th>Duração</th>
-                  <th>Preço</th>
-                  <th>Pagamento</th>
-                  <th>Notas</th>
-                  <th>Estado</th>
+                  <th>Ref</th><th>Data</th><th>Hora</th><th>Cliente</th>
+                  <th>Telefone</th><th>Email</th><th>Serviço</th><th>Duração</th>
+                  <th>Preço</th><th>Pagamento</th><th>Notas</th><th>Estado</th>
                 </tr>
               </thead>
-              <tbody>
-                ${bookings.map(b => rowHtml(b)).join('')}
-              </tbody>
+              <tbody>${bookings.map(b => rowHtml(b)).join('')}</tbody>
             </table>
           </div>
         </div>`;
     }
+
+    // Pagination bar
+    const from = total === 0 ? 0 : start + 1;
+    const to   = Math.min(start + PAGE_SIZE, total);
+    html += `<div class="pagination">
+      <span class="page-info">${from}–${to} de ${total} reservas</span>
+      <div class="page-btns">
+        <button class="page-btn" onclick="changePage(-1)" ${_page === 0 ? 'disabled' : ''}>← Anterior</button>
+        ${Array.from({length: totalPages}, (_, i) =>
+          `<button class="page-btn${i === _page ? ' active' : ''}" onclick="goPage(${i})">${i+1}</button>`
+        ).join('')}
+        <button class="page-btn" onclick="changePage(1)" ${_page >= totalPages - 1 ? 'disabled' : ''}>Próximo →</button>
+      </div>
+    </div>`;
+
     container.innerHTML = html;
 
     // Status change handlers
@@ -636,11 +719,23 @@
           headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPw },
           body: JSON.stringify({ status: newStatus })
         });
-        // Refresh stats
         const statsRes = await fetch(`${API}/api/admin/stats`, { headers: { 'x-admin-password': adminPw } });
         renderStats(await statsRes.json());
       });
     });
+  }
+
+  function changePage(delta) {
+    const totalPages = Math.ceil(_allBookings.length / PAGE_SIZE);
+    _page = Math.max(0, Math.min(totalPages - 1, _page + delta));
+    renderPage();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function goPage(n) {
+    _page = n;
+    renderPage();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function rowHtml(b) {
@@ -687,8 +782,92 @@
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
     document.getElementById('tab-reservas-content').style.display = tab === 'reservas' ? 'block' : 'none';
-    document.getElementById('tab-equipa-content').style.display = tab === 'equipa' ? 'block' : 'none';
+    document.getElementById('tab-agenda-content').style.display   = tab === 'agenda'   ? 'block' : 'none';
+    document.getElementById('tab-equipa-content').style.display   = tab === 'equipa'   ? 'block' : 'none';
     if (tab === 'equipa') loadStaff();
+    if (tab === 'agenda') {
+      // Pre-fill today's date
+      if (!document.getElementById('schedule-date').value)
+        document.getElementById('schedule-date').value = new Date().toISOString().split('T')[0];
+      loadSchedule();
+    }
+  }
+
+  // ── SCHEDULE ──
+  const SCHED_SLOTS = ['10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
+    '14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30',
+    '18:00','18:30','19:00','19:30','20:00','20:30'];
+
+  function slotMins(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
+
+  async function loadSchedule() {
+    const date    = document.getElementById('schedule-date').value;
+    const locFilter = document.getElementById('schedule-loc').value;
+    const el      = document.getElementById('schedule-content');
+    if (!date) { el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:48px">Selecione uma data.</p>'; return; }
+    el.innerHTML = '<div id="loading"><div class="spinner"></div>A carregar agenda…</div>';
+    try {
+      const res  = await fetch(`${API}/api/admin/schedule?date=${date}`, { headers: { 'x-admin-password': adminPw } });
+      const data = await res.json();
+      renderScheduleGrid(data, locFilter);
+    } catch (err) {
+      el.innerHTML = `<p style="color:var(--red);text-align:center;padding:32px">Erro: ${err.message}</p>`;
+    }
+  }
+
+  function renderScheduleGrid({ staff, bookings }, locFilter) {
+    const el = document.getElementById('schedule-content');
+    let filteredStaff = locFilter ? staff.filter(s => s.location === locFilter) : staff;
+    if (!filteredStaff.length) {
+      el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:48px">Nenhum terapeuta para este dia / local.</p>';
+      return;
+    }
+
+    // Index bookings by staff_id
+    const byStaff = {};
+    bookings.forEach(b => { (byStaff[b.staff_id] = byStaff[b.staff_id] || []).push(b); });
+
+    const locations = locFilter ? [locFilter] : ['saldanha','caparica'];
+    const locNames  = { saldanha:'Saldanha — Lisboa', caparica:'Costa da Caparica' };
+
+    let html = '<div class="schedule-wrap"><table class="schedule-table"><thead><tr>';
+    html += '<th class="schedule-th-name">Terapeuta</th>';
+    SCHED_SLOTS.forEach(t => html += `<th class="schedule-th-time">${t}</th>`);
+    html += '</tr></thead><tbody>';
+
+    locations.forEach(loc => {
+      const ls = filteredStaff.filter(s => s.location === loc);
+      if (!ls.length) return;
+      html += `<tr class="schedule-loc-row"><td colspan="${SCHED_SLOTS.length + 1}">${locNames[loc]}</td></tr>`;
+      ls.forEach(s => {
+        const sBookings = byStaff[s.id] || [];
+        // Compute cell states
+        const states = SCHED_SLOTS.map(() => null);
+        sBookings.forEach(b => {
+          const bStart = slotMins(b.time);
+          const bEnd   = bStart + parseInt(b.duration) + 15;
+          const covering = SCHED_SLOTS.map((t,i) => ({i, m: slotMins(t)}))
+            .filter(({m}) => m >= bStart && m < bEnd);
+          if (!covering.length) return;
+          states[covering[0].i] = { booking: b, colspan: covering.length };
+          for (let k = 1; k < covering.length; k++) states[covering[k].i] = 'span';
+        });
+        html += `<tr><td class="schedule-name-cell">${esc(s.name)}</td>`;
+        states.forEach(cell => {
+          if (cell === 'span') return;
+          if (!cell) { html += `<td class="schedule-free"></td>`; return; }
+          const { booking: b, colspan } = cell;
+          const label = b.service.split(' ').slice(0,3).join(' ');
+          html += `<td colspan="${colspan}" class="schedule-busy" title="${esc(b.name)} · ${esc(b.service)} (${b.duration}min) · ${b.ref}">
+            <div class="schedule-booking">${esc(b.name.split(' ')[0])}<span>${label} · ${b.duration}m</span></div>
+          </td>`;
+        });
+        html += '</tr>';
+      });
+    });
+
+    html += '</tbody></table></div>';
+    el.innerHTML = html;
   }
 
   // ── STAFF ──

@@ -462,6 +462,32 @@ app.post('/api/admin/bookings', adminAuth, async (req, res) => {
   res.json({ success: true, ref });
 });
 
+// ── GET /api/admin/schedule ──
+app.get('/api/admin/schedule', adminAuth, async (req, res) => {
+  const { date } = req.query;
+  if (!date) return res.status(400).json({ error: 'date is required' });
+  try {
+    const dayOfWeek = new Date(date + 'T12:00:00').getDay();
+    const [staff] = await db.execute(
+      `SELECT s.id, s.name, s.location
+       FROM staff s
+       JOIN staff_schedule ss ON ss.staff_id = s.id
+       WHERE s.active = 1 AND ss.day_of_week = ?
+       ORDER BY s.location, s.id`,
+      [dayOfWeek]
+    );
+    const [bookings] = await db.execute(
+      `SELECT ref, staff_id, service, duration, time, name, status, location
+       FROM bookings
+       WHERE date = ? AND status != 'cancelled' AND staff_id IS NOT NULL`,
+      [date]
+    );
+    res.json({ staff, bookings });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── PATCH /api/admin/bookings/:ref ──
 app.patch('/api/admin/bookings/:ref', adminAuth, async (req, res) => {
   const { status } = req.body;
