@@ -542,6 +542,46 @@ app.patch('/api/admin/bookings/:ref', adminAuth, async (req, res) => {
     return res.status(400).json({ error: 'Invalid status' });
   }
   try {
+    // Auto-assign a random free therapist when confirming an unassigned booking
+    if (status === 'confirmed') {
+      const [[booking]] = await db.execute(
+        'SELECT location, date, time, duration, staff_id FROM bookings WHERE ref = ?',
+        [req.params.ref]
+      );
+      if (booking && !booking.staff_id) {
+        const dayOfWeek = new Date(booking.date + 'T12:00:00').getDay();
+        const [staffRows] = await db.execute(
+          `SELECT s.id FROM staff s
+           JOIN staff_schedule ss ON ss.staff_id = s.id
+           WHERE s.location = ? AND s.active = 1 AND ss.day_of_week = ?`,
+          [booking.location, dayOfWeek]
+        );
+        const [conflicts] = await db.execute(
+          `SELECT staff_id, time, duration FROM bookings
+           WHERE location = ? AND date = ? AND status != 'cancelled'
+             AND staff_id IS NOT NULL AND ref != ?`,
+          [booking.location, booking.date, req.params.ref]
+        );
+        function toMins(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+        const bStart = toMins(booking.time);
+        const bEnd   = bStart + parseInt(booking.duration) + 15;
+        const busyIds = new Set(
+          conflicts
+            .filter(c => {
+              const cStart = toMins(c.time);
+              const cEnd   = cStart + parseInt(c.duration) + 15;
+              return bStart < cEnd && bEnd > cStart;
+            })
+            .map(c => Number(c.staff_id))
+        );
+        const freeStaff = staffRows.filter(s => !busyIds.has(Number(s.id)));
+        if (freeStaff.length > 0) {
+          const assigned = freeStaff[Math.floor(Math.random() * freeStaff.length)];
+          await db.execute('UPDATE bookings SET status = ?, staff_id = ? WHERE ref = ?', [status, assigned.id, req.params.ref]);
+          return res.json({ success: true, staff_id: assigned.id });
+        }
+      }
+    }
     await db.execute('UPDATE bookings SET status = ? WHERE ref = ?', [status, req.params.ref]);
     res.json({ success: true });
   } catch (err) {
