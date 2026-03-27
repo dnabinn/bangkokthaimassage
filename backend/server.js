@@ -108,7 +108,7 @@ app.get('/api/slots', async (req, res) => {
       let freeCount = 0;
       for (const s of staffRows) {
         const busy = bookings
-          .filter(b => b.staff_id === s.id)
+          .filter(b => Number(b.staff_id) === Number(s.id))
           .some(b => {
             const bStart = toMins(b.time);
             const bEnd   = bStart + parseInt(b.duration) + 15;

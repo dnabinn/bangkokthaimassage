@@ -322,10 +322,13 @@
       .filters { flex-direction: column; }
     }
 
+    /* ── MOB SUMMARY (hidden on desktop) ── */
+    .mob-summary { display: none; }
+
     /* ── MOBILE RESPONSIVE ── */
     @media (max-width: 768px) {
 
-      /* Table → card layout */
+      /* Table → accordion card layout */
       .table-wrap { border: none; border-radius: 0; overflow-x: visible; }
       .table-wrap table { display: block; }
       .table-wrap thead { display: none; }
@@ -337,8 +340,52 @@
         border-radius: 8px;
         margin-bottom: 10px;
         overflow: hidden;
+        cursor: pointer;
       }
+
+      /* Collapsed: hide all regular TDs */
       .table-wrap tbody td {
+        display: none;
+      }
+
+      /* Summary row always visible */
+      .table-wrap tbody td.mob-summary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 14px;
+        background: #fff;
+        cursor: pointer;
+        user-select: none;
+      }
+      .mob-summary-name {
+        font-weight: 600;
+        font-size: 14px;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .mob-summary-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .mob-summary-datetime {
+        font-size: 11px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .acc-arrow {
+        font-size: 11px;
+        color: var(--muted);
+        transition: transform 0.2s;
+        display: inline-block;
+      }
+
+      /* Expanded: show all regular TDs */
+      .table-wrap tbody tr.acc-open td {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
@@ -348,8 +395,11 @@
         white-space: normal;
         font-size: 13px;
       }
-      .table-wrap tbody td:last-child { border-bottom: none; }
-      .table-wrap tbody td::before {
+      .table-wrap tbody tr.acc-open td.mob-summary {
+        border-bottom: 1px solid var(--border);
+      }
+      .table-wrap tbody tr.acc-open td:last-child { border-bottom: none; }
+      .table-wrap tbody tr.acc-open td:not(.mob-summary)::before {
         content: attr(data-label);
         font-size: 10px;
         font-weight: 600;
@@ -359,6 +409,8 @@
         flex: 0 0 78px;
         padding-top: 2px;
       }
+      .table-wrap tbody tr.acc-open .acc-arrow { transform: rotate(180deg); }
+
       .client-email { max-width: none; }
       .notes-cell { max-width: none; overflow: visible; text-overflow: unset; white-space: normal; }
 
@@ -796,12 +848,28 @@
     renderLocSection(loc);
   }
 
+  function toggleAccordion(tr, event) {
+    if (event.target.tagName === 'SELECT') return;
+    tr.classList.toggle('acc-open');
+  }
+
   function rowHtml(b) {
     const payBadge = {
       card: 'badge-card', mbway: 'badge-mbway', whatsapp: 'badge-whatsapp'
     }[b.pay_method] || 'badge-unknown';
     const payLabel = { card: 'Cartão', mbway: 'MB WAY', whatsapp: 'Local' }[b.pay_method] || b.pay_method;
-    return `<tr>
+    const statusLabel = { confirmed: 'Confirmado', pending: 'Pendente', cancelled: 'Cancelado' }[b.status] || b.status;
+    const statusBadge = { confirmed: 'badge-card', pending: 'badge-mbway', cancelled: 'badge-unknown' }[b.status] || 'badge-unknown';
+    return `<tr onclick="toggleAccordion(this,event)">
+      <td class="mob-summary">
+        <span class="mob-summary-name">${esc(b.name)}</span>
+        <span class="mob-summary-right">
+          <span class="mob-summary-datetime">${formatDate(b.date)} ${b.time}</span>
+          <span class="badge ${payBadge}">${payLabel}</span>
+          <span class="badge ${statusBadge}">${statusLabel}</span>
+          <span class="acc-arrow">▼</span>
+        </span>
+      </td>
       <td data-label="Ref"><span class="ref">${b.ref}</span></td>
       <td data-label="Data">${formatDate(b.date)}</td>
       <td data-label="Hora">${b.time}</td>
