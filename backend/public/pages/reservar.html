@@ -1363,7 +1363,7 @@
     const morning   = ['10:00','10:30','11:00','11:30'];
     const afternoon = ['12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30'];
     const evening   = ['17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30'];
-    const dateStr = B.date.toISOString().split('T')[0];
+    const dateStr = `${B.date.getFullYear()}-${String(B.date.getMonth()+1).padStart(2,'0')}-${String(B.date.getDate()).padStart(2,'0')}`;
     try {
       const res = await fetch(`${BACKEND_URL}/api/slots?location=${B.location}&date=${dateStr}&duration=${B.duration || 60}&groupSize=${B.groupSize || 1}`);
       const data = await res.json();
@@ -1413,7 +1413,7 @@
     document.getElementById('btn4').disabled = true;
     B.staffSelections = new Array(B.groupSize).fill(null);
     B.staffId = null; B.staffName = null;
-    const dateStr = B.date.toISOString().split('T')[0];
+    const dateStr = `${B.date.getFullYear()}-${String(B.date.getMonth()+1).padStart(2,'0')}-${String(B.date.getDate()).padStart(2,'0')}`;
     try {
       const res = await fetch(`${BACKEND_URL}/api/staff?location=${B.location}&date=${dateStr}&time=${encodeURIComponent(B.time)}&duration=${B.duration}`);
       _cachedStaff = await res.json();
@@ -1534,7 +1534,7 @@
     const loc   = LOC_INFO[B.location];
     const isEn  = currentLang === 'en';
     const svcName = isEn ? B.service.nameEn : B.service.name;
-    const dateISO = B.date.toISOString().split('T')[0];
+    const dateISO = `${B.date.getFullYear()}-${String(B.date.getMonth()+1).padStart(2,'0')}-${String(B.date.getDate()).padStart(2,'0')}`;
 
     const totalPrice = B.price * B.groupSize;
 
