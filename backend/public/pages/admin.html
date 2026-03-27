@@ -495,14 +495,6 @@
           <label>Data</label>
           <input type="date" id="schedule-date">
         </div>
-        <div class="filter-group">
-          <label>Local</label>
-          <select id="schedule-loc">
-            <option value="">Todos</option>
-            <option value="saldanha">Saldanha</option>
-            <option value="caparica">Costa da Caparica</option>
-          </select>
-        </div>
         <button class="btn-filter" onclick="loadSchedule()">Ver Agenda</button>
       </div>
       <div id="schedule-content">
@@ -639,78 +631,67 @@
     document.getElementById('stat-caparica').textContent  = s.caparica ?? 0;
   }
 
-  // ── RENDER BOOKINGS ──
+  // ── RENDER BOOKINGS (per-location pagination) ──
+  const PAGE_SIZE = 10;
+  let _bSal = [], _bCap = [], _pageSal = 0, _pageCap = 0;
+
   function renderBookings(rows) {
     const container = document.getElementById('bookings-container');
     if (!rows.length) {
       container.innerHTML = '<p style="text-align:center;color:#888;padding:48px">Nenhuma reserva encontrada.</p>';
       return;
     }
-    _allBookings = rows;
-    _page = 0;
-    renderPage();
+    _bSal = rows.filter(r => r.location === 'saldanha');
+    _bCap = rows.filter(r => r.location === 'caparica');
+    _pageSal = 0; _pageCap = 0;
+    container.innerHTML = '<div id="sec-saldanha"></div><div id="sec-caparica"></div>';
+    renderLocSection('saldanha');
+    renderLocSection('caparica');
   }
 
-  let _allBookings = [], _page = 0;
-  const PAGE_SIZE = 10;
+  function renderLocSection(loc) {
+    const el = document.getElementById('sec-' + loc);
+    if (!el) return;
+    const books      = loc === 'saldanha' ? _bSal : _bCap;
+    const page       = loc === 'saldanha' ? _pageSal : _pageCap;
+    const label      = loc === 'saldanha' ? 'Saldanha — Lisboa' : 'Costa da Caparica';
+    if (!books.length) { el.innerHTML = ''; return; }
 
-  function renderPage() {
-    const container = document.getElementById('bookings-container');
-    const total = _allBookings.length;
+    const total      = books.length;
     const totalPages = Math.ceil(total / PAGE_SIZE);
-    const start = _page * PAGE_SIZE;
-    const slice = _allBookings.slice(start, start + PAGE_SIZE);
+    const start      = page * PAGE_SIZE;
+    const slice      = books.slice(start, start + PAGE_SIZE);
+    const from       = start + 1;
+    const to         = Math.min(start + PAGE_SIZE, total);
 
-    const grouped = { saldanha: [], caparica: [], other: [] };
-    slice.forEach(r => {
-      if (r.location === 'saldanha') grouped.saldanha.push(r);
-      else if (r.location === 'caparica') grouped.caparica.push(r);
-      else grouped.other.push(r);
-    });
-
-    const labels = { saldanha: 'Saldanha — Lisboa', caparica: 'Costa da Caparica', other: 'Outro' };
-    let html = '';
-    for (const [key, bookings] of Object.entries(grouped)) {
-      if (!bookings.length) continue;
-      html += `
-        <div class="location-section">
-          <div class="location-header">
-            <h2>${labels[key]}</h2>
-            <span class="location-badge">${bookings.length} reserva${bookings.length !== 1 ? 's' : ''}</span>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Ref</th><th>Data</th><th>Hora</th><th>Cliente</th>
-                  <th>Telefone</th><th>Email</th><th>Serviço</th><th>Duração</th>
-                  <th>Preço</th><th>Pagamento</th><th>Notas</th><th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>${bookings.map(b => rowHtml(b)).join('')}</tbody>
-            </table>
-          </div>
-        </div>`;
-    }
-
-    // Pagination bar
-    const from = total === 0 ? 0 : start + 1;
-    const to   = Math.min(start + PAGE_SIZE, total);
-    html += `<div class="pagination">
-      <span class="page-info">${from}–${to} de ${total} reservas</span>
-      <div class="page-btns">
-        <button class="page-btn" onclick="changePage(-1)" ${_page === 0 ? 'disabled' : ''}>← Anterior</button>
-        ${Array.from({length: totalPages}, (_, i) =>
-          `<button class="page-btn${i === _page ? ' active' : ''}" onclick="goPage(${i})">${i+1}</button>`
-        ).join('')}
-        <button class="page-btn" onclick="changePage(1)" ${_page >= totalPages - 1 ? 'disabled' : ''}>Próximo →</button>
+    let html = `<div class="location-section">
+      <div class="location-header">
+        <h2>${label}</h2>
+        <span class="location-badge">${total} reserva${total !== 1 ? 's' : ''}</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Ref</th><th>Data</th><th>Hora</th><th>Cliente</th>
+            <th>Telefone</th><th>Email</th><th>Serviço</th><th>Duração</th>
+            <th>Preço</th><th>Pagamento</th><th>Notas</th><th>Estado</th>
+          </tr></thead>
+          <tbody>${slice.map(b => rowHtml(b)).join('')}</tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <span class="page-info">${from}–${to} de ${total} reservas</span>
+        <div class="page-btns">
+          <button class="page-btn" onclick="changeLocPage('${loc}',-1)" ${page===0?'disabled':''}>← Anterior</button>
+          ${Array.from({length:totalPages},(_,i)=>`<button class="page-btn${i===page?' active':''}" onclick="goLocPage('${loc}',${i})">${i+1}</button>`).join('')}
+          <button class="page-btn" onclick="changeLocPage('${loc}',1)" ${page>=totalPages-1?'disabled':''}>Próximo →</button>
+        </div>
       </div>
     </div>`;
 
-    container.innerHTML = html;
+    el.innerHTML = html;
 
-    // Status change handlers
-    container.querySelectorAll('.status-select').forEach(sel => {
+    el.querySelectorAll('.status-select').forEach(sel => {
       sel.addEventListener('change', async e => {
         const ref = e.target.dataset.ref;
         const newStatus = e.target.value;
@@ -725,17 +706,17 @@
     });
   }
 
-  function changePage(delta) {
-    const totalPages = Math.ceil(_allBookings.length / PAGE_SIZE);
-    _page = Math.max(0, Math.min(totalPages - 1, _page + delta));
-    renderPage();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  function changeLocPage(loc, delta) {
+    const books = loc === 'saldanha' ? _bSal : _bCap;
+    const total = Math.ceil(books.length / PAGE_SIZE);
+    if (loc === 'saldanha') _pageSal = Math.max(0, Math.min(total-1, _pageSal+delta));
+    else                    _pageCap = Math.max(0, Math.min(total-1, _pageCap+delta));
+    renderLocSection(loc);
   }
 
-  function goPage(n) {
-    _page = n;
-    renderPage();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  function goLocPage(loc, n) {
+    if (loc === 'saldanha') _pageSal = n; else _pageCap = n;
+    renderLocSection(loc);
   }
 
   function rowHtml(b) {
@@ -801,47 +782,37 @@
   function slotMins(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
 
   async function loadSchedule() {
-    const date    = document.getElementById('schedule-date').value;
-    const locFilter = document.getElementById('schedule-loc').value;
-    const el      = document.getElementById('schedule-content');
+    const date = document.getElementById('schedule-date').value;
+    const el   = document.getElementById('schedule-content');
     if (!date) { el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:48px">Selecione uma data.</p>'; return; }
     el.innerHTML = '<div id="loading"><div class="spinner"></div>A carregar agenda…</div>';
     try {
       const res  = await fetch(`${API}/api/admin/schedule?date=${date}`, { headers: { 'x-admin-password': adminPw } });
       const data = await res.json();
-      renderScheduleGrid(data, locFilter);
+      renderScheduleGrid(data);
     } catch (err) {
       el.innerHTML = `<p style="color:var(--red);text-align:center;padding:32px">Erro: ${err.message}</p>`;
     }
   }
 
-  function renderScheduleGrid({ staff, bookings }, locFilter) {
+  function renderScheduleGrid({ staff, bookings }) {
     const el = document.getElementById('schedule-content');
-    let filteredStaff = locFilter ? staff.filter(s => s.location === locFilter) : staff;
-    if (!filteredStaff.length) {
-      el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:48px">Nenhum terapeuta para este dia / local.</p>';
+    if (!staff.length) {
+      el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:48px">Nenhum terapeuta para este dia.</p>';
       return;
     }
 
-    // Index bookings by staff_id
     const byStaff = {};
     bookings.forEach(b => { (byStaff[b.staff_id] = byStaff[b.staff_id] || []).push(b); });
 
-    const locations = locFilter ? [locFilter] : ['saldanha','caparica'];
-    const locNames  = { saldanha:'Saldanha — Lisboa', caparica:'Costa da Caparica' };
+    const LOC_DEFS = [
+      { key: 'saldanha', label: 'Saldanha — Lisboa' },
+      { key: 'caparica', label: 'Costa da Caparica'  }
+    ];
 
-    let html = '<div class="schedule-wrap"><table class="schedule-table"><thead><tr>';
-    html += '<th class="schedule-th-name">Terapeuta</th>';
-    SCHED_SLOTS.forEach(t => html += `<th class="schedule-th-time">${t}</th>`);
-    html += '</tr></thead><tbody>';
-
-    locations.forEach(loc => {
-      const ls = filteredStaff.filter(s => s.location === loc);
-      if (!ls.length) return;
-      html += `<tr class="schedule-loc-row"><td colspan="${SCHED_SLOTS.length + 1}">${locNames[loc]}</td></tr>`;
-      ls.forEach(s => {
+    function buildStaffRows(locStaff) {
+      return locStaff.map(s => {
         const sBookings = byStaff[s.id] || [];
-        // Compute cell states
         const states = SCHED_SLOTS.map(() => null);
         sBookings.forEach(b => {
           const bStart = slotMins(b.time);
@@ -852,22 +823,41 @@
           states[covering[0].i] = { booking: b, colspan: covering.length };
           for (let k = 1; k < covering.length; k++) states[covering[k].i] = 'span';
         });
-        html += `<tr><td class="schedule-name-cell">${esc(s.name)}</td>`;
+        let row = `<tr><td class="schedule-name-cell">${esc(s.name)}</td>`;
         states.forEach(cell => {
           if (cell === 'span') return;
-          if (!cell) { html += `<td class="schedule-free"></td>`; return; }
+          if (!cell) { row += `<td class="schedule-free"></td>`; return; }
           const { booking: b, colspan } = cell;
-          const label = b.service.split(' ').slice(0,3).join(' ');
-          html += `<td colspan="${colspan}" class="schedule-busy" title="${esc(b.name)} · ${esc(b.service)} (${b.duration}min) · ${b.ref}">
-            <div class="schedule-booking">${esc(b.name.split(' ')[0])}<span>${label} · ${b.duration}m</span></div>
+          const svcLabel = b.service.split(' ').slice(0,3).join(' ');
+          row += `<td colspan="${colspan}" class="schedule-busy"
+            title="${esc(b.name)} · ${esc(b.service)} (${b.duration}min) · ${b.ref}">
+            <div class="schedule-booking">${esc(b.name.split(' ')[0])}<span>${svcLabel} · ${b.duration}m</span></div>
           </td>`;
         });
-        html += '</tr>';
-      });
+        return row + '</tr>';
+      }).join('');
+    }
+
+    let html = '';
+    LOC_DEFS.forEach(({ key, label }) => {
+      const locStaff = staff.filter(s => s.location === key);
+      if (!locStaff.length) return;
+      html += `
+        <div class="location-section">
+          <div class="location-header"><h2>${label}</h2></div>
+          <div class="schedule-wrap">
+            <table class="schedule-table">
+              <thead><tr>
+                <th class="schedule-th-name">Terapeuta</th>
+                ${SCHED_SLOTS.map(t => `<th class="schedule-th-time">${t}</th>`).join('')}
+              </tr></thead>
+              <tbody>${buildStaffRows(locStaff)}</tbody>
+            </table>
+          </div>
+        </div>`;
     });
 
-    html += '</tbody></table></div>';
-    el.innerHTML = html;
+    el.innerHTML = html || '<p style="color:var(--muted);text-align:center;padding:48px">Nenhum terapeuta para este dia.</p>';
   }
 
   // ── STAFF ──

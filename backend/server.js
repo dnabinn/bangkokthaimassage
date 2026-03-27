@@ -69,18 +69,56 @@ app.get('/api/health', async (_req, res) => {
 });
 
 // ── GET /api/slots ──
-// Returns taken time slots for a given location + date
+// Returns taken time slots based on STAFF AVAILABILITY, not blocked_slots table.
+// A slot is "taken" when fewer than groupSize therapists are free for the full duration.
 app.get('/api/slots', async (req, res) => {
-  const { location, date } = req.query;
+  const { location, date, duration, groupSize } = req.query;
   if (!location || !date) {
     return res.status(400).json({ error: 'location and date are required' });
   }
+  const ALL_SLOTS = ['10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
+    '14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30',
+    '18:00','18:30','19:00','19:30','20:00','20:30'];
+  const needed = Math.max(1, parseInt(groupSize) || 1);
+  const dur    = Math.max(30, parseInt(duration) || 60);
+
+  function toMins(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
+
   try {
-    const [rows] = await db.execute(
-      'SELECT time FROM blocked_slots WHERE location = ? AND date = ?',
+    const dayOfWeek = new Date(date + 'T12:00:00').getDay();
+    const [staffRows] = await db.execute(
+      `SELECT s.id FROM staff s
+       JOIN staff_schedule ss ON ss.staff_id = s.id
+       WHERE s.location = ? AND s.active = 1 AND ss.day_of_week = ?`,
+      [location, dayOfWeek]
+    );
+    // If not enough staff at all, mark everything taken
+    if (staffRows.length < needed) {
+      return res.json({ taken: ALL_SLOTS });
+    }
+    const [bookings] = await db.execute(
+      `SELECT staff_id, time, duration FROM bookings
+       WHERE location = ? AND date = ? AND status != 'cancelled' AND staff_id IS NOT NULL`,
       [location, date]
     );
-    res.json({ taken: rows.map(r => r.time) });
+    const taken = [];
+    for (const slot of ALL_SLOTS) {
+      const slotStart = toMins(slot);
+      const slotEnd   = slotStart + dur + 15;
+      let freeCount = 0;
+      for (const s of staffRows) {
+        const busy = bookings
+          .filter(b => b.staff_id === s.id)
+          .some(b => {
+            const bStart = toMins(b.time);
+            const bEnd   = bStart + parseInt(b.duration) + 15;
+            return slotStart < bEnd && slotEnd > bStart;
+          });
+        if (!busy) freeCount++;
+      }
+      if (freeCount < needed) taken.push(slot);
+    }
+    res.json({ taken });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

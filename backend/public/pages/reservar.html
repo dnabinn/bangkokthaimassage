@@ -1365,7 +1365,7 @@
     const evening   = ['17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30'];
     const dateStr = B.date.toISOString().split('T')[0];
     try {
-      const res = await fetch(`${BACKEND_URL}/api/slots?location=${B.location}&date=${dateStr}`);
+      const res = await fetch(`${BACKEND_URL}/api/slots?location=${B.location}&date=${dateStr}&duration=${B.duration || 60}&groupSize=${B.groupSize || 1}`);
       const data = await res.json();
       TAKEN = data.taken || [];
     } catch (_) {
