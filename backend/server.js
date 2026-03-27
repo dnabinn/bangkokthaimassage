@@ -106,23 +106,23 @@ app.get('/api/slots', async (req, res) => {
       const slotStart = toMins(slot);
       const slotEnd   = slotStart + dur + 15;
 
-      function overlaps(b) {
+      const overlaps = b => {
         const bStart = toMins(b.time);
         const bEnd   = bStart + parseInt(b.duration) + 15;
         return slotStart < bEnd && slotEnd > bStart;
-      }
+      };
 
       // Count assigned-staff conflicts per therapist
       let freeCount = 0;
       for (const s of staffRows) {
         const busy = bookings
-          .filter(b => b.staff_id !== null && b.staff_id !== undefined && Number(b.staff_id) === Number(s.id))
+          .filter(b => b.staff_id != null && Number(b.staff_id) === Number(s.id))
           .some(overlaps);
         if (!busy) freeCount++;
       }
 
       // Unassigned bookings (staff_id IS NULL) still occupy one therapist slot each
-      const unassigned = bookings.filter(b => !b.staff_id && overlaps(b)).length;
+      const unassigned = bookings.filter(b => b.staff_id == null && overlaps(b)).length;
       freeCount = Math.max(0, freeCount - unassigned);
 
       if (freeCount < needed) taken.push(slot);
@@ -210,21 +210,35 @@ app.get('/api/staff', async (req, res) => {
     const newStart = hh * 60 + mm;
     const newEnd   = newStart + parseInt(duration) + 15;
 
-    const result = [];
-    for (const s of staffRows) {
-      const [bookings] = await db.execute(
-        `SELECT time, duration FROM bookings
-         WHERE staff_id = ? AND date = ? AND status != 'cancelled'`,
-        [s.id, date]
-      );
-      const busy = bookings.some(b => {
-        const [bh, bm] = b.time.split(':').map(Number);
-        const existingStart = bh * 60 + bm;
-        const existingEnd   = existingStart + parseInt(b.duration) + 15;
-        return newStart < existingEnd && newEnd > existingStart;
-      });
-      result.push({ id: s.id, name: s.name, available: !busy });
+    const overlapsWindow = b => {
+      const [bh, bm] = b.time.split(':').map(Number);
+      const bStart = bh * 60 + bm;
+      const bEnd   = bStart + parseInt(b.duration) + 15;
+      return newStart < bEnd && newEnd > bStart;
+    };
+
+    // Fetch ALL bookings for this location+date (assigned and unassigned)
+    const [allBookings] = await db.execute(
+      `SELECT staff_id, time, duration FROM bookings
+       WHERE location = ? AND date = ? AND status != 'cancelled'`,
+      [location, date]
+    );
+
+    const result = staffRows.map(s => {
+      const busy = allBookings
+        .filter(b => b.staff_id != null && Number(b.staff_id) === Number(s.id))
+        .some(overlapsWindow);
+      return { id: s.id, name: s.name, available: !busy };
+    });
+
+    // Unassigned bookings still occupy one therapist — mark the first N free therapists as busy
+    const unassignedConflicts = allBookings.filter(b => b.staff_id == null && overlapsWindow(b)).length;
+    let toMark = unassignedConflicts;
+    for (const r of result) {
+      if (toMark <= 0) break;
+      if (r.available) { r.available = false; toMark--; }
     }
+
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
