@@ -314,6 +314,15 @@
     }
     .btn-modal-submit:hover { background: var(--teal); }
     #modal-result { font-size: 13px; margin-top: 12px; text-align: center; }
+    .mb-group-counter { display: flex; align-items: center; gap: 10px; }
+    .mb-group-btn {
+      width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+      background: #fff; font-size: 18px; line-height: 1; cursor: pointer;
+      color: var(--green); transition: background .15s;
+    }
+    .mb-group-btn:hover:not(:disabled) { background: var(--cream); border-color: var(--gold); }
+    .mb-group-btn:disabled { opacity: 0.35; cursor: default; }
+    #mb-group-display { font-size: 20px; font-weight: 500; min-width: 24px; text-align: center; }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 600px) {
@@ -472,6 +481,15 @@
           <option value="confirmed">Confirmado</option>
           <option value="pending">Pendente</option>
         </select>
+      </div>
+      <div class="modal-field full">
+        <label>Número de pessoas</label>
+        <div class="mb-group-counter">
+          <button type="button" class="mb-group-btn" onclick="mbAdjustGroup(-1)">−</button>
+          <span id="mb-group-display">1</span>
+          <button type="button" class="mb-group-btn" onclick="mbAdjustGroup(1)">+</button>
+          <span id="mb-group-max-note" style="font-size:11px;color:var(--muted);margin-left:8px;"></span>
+        </div>
       </div>
       <div class="modal-field">
         <label>Data</label>
@@ -1069,10 +1087,34 @@
   }
 
   // ── MANUAL BOOKING ──
+  let _mbGroupSize = 1;
+
+  function mbAdjustGroup(delta) {
+    const loc = document.getElementById('mb-location').value;
+    const max = loc === 'saldanha' ? 2 : 3;
+    _mbGroupSize = Math.min(max, Math.max(1, _mbGroupSize + delta));
+    document.getElementById('mb-group-display').textContent = _mbGroupSize;
+    document.querySelector('.mb-group-btn:first-child').disabled = _mbGroupSize <= 1;
+    document.querySelector('.mb-group-btn:last-child').disabled  = _mbGroupSize >= max;
+  }
+
+  function mbResetGroup() {
+    const loc = document.getElementById('mb-location').value;
+    const max = loc === 'saldanha' ? 2 : 3;
+    _mbGroupSize = 1;
+    document.getElementById('mb-group-display').textContent = '1';
+    document.getElementById('mb-group-max-note').textContent = `máx. ${max}`;
+    document.querySelector('.mb-group-btn:first-child').disabled = true;
+    document.querySelector('.mb-group-btn:last-child').disabled  = false;
+  }
+
+  document.getElementById('mb-location').addEventListener('change', mbResetGroup);
+
   async function openManualBooking() {
     // Pre-fill today's date
     document.getElementById('mb-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('modal-result').textContent = '';
+    mbResetGroup();
     // Populate staff dropdown
     const staffSel = document.getElementById('mb-staff');
     staffSel.innerHTML = '<option value="">— Auto —</option>';
@@ -1108,6 +1150,7 @@
     const pay_method= document.getElementById('mb-paymethod').value;
     const staffId   = document.getElementById('mb-staff').value || null;
     const notes     = document.getElementById('mb-notes').value.trim();
+    const groupSize = _mbGroupSize || 1;
 
     if (!date || !time || !service || !price || !name || !phone || !email) {
       resultEl.style.color = 'var(--red)';
@@ -1119,7 +1162,7 @@
       const res = await fetch(`${API}/api/admin/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPw },
-        body: JSON.stringify({ location, service, duration, price: parseFloat(price), date, time, name, email, phone, notes, pay_method, staffId, status })
+        body: JSON.stringify({ location, service, duration, price: parseFloat(price), date, time, name, email, phone, notes, pay_method, staffId, status, groupSize })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);

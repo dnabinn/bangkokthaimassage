@@ -492,35 +492,78 @@ app.patch('/api/admin/staff/:id', adminAuth, async (req, res) => {
 
 // ── POST /api/admin/bookings (manual / walk-in / phone) ──
 app.post('/api/admin/bookings', adminAuth, async (req, res) => {
-  const { location, service, duration, price, date, time, name, email, phone, notes, pay_method, staffId, status } = req.body;
+  const { location, service, duration, price, date, time, name, email, phone, notes, pay_method, staffId, status, groupSize } = req.body;
   const required = { location, service, duration, price, date, time, name, email, phone };
   const missing  = Object.entries(required).filter(([, v]) => !v).map(([k]) => k);
   if (missing.length) return res.status(400).json({ error: `Missing: ${missing.join(', ')}` });
 
-  const ref           = 'BTM-' + Math.floor(100000 + Math.random() * 900000);
   const bookingStatus = status || 'confirmed';
+  const needed        = Math.max(1, parseInt(groupSize) || 1);
 
+  function toMins(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+
+  // Get available staff for auto-assignment
+  const dayOfWeek = new Date(date + 'T12:00:00').getDay();
+  const [staffRows] = await db.execute(
+    `SELECT s.id FROM staff s
+     JOIN staff_schedule ss ON ss.staff_id = s.id
+     WHERE s.location = ? AND s.active = 1 AND ss.day_of_week = ?`,
+    [location, dayOfWeek]
+  );
+  const [existingBookings] = await db.execute(
+    `SELECT staff_id, time, duration FROM bookings
+     WHERE location = ? AND date = ? AND status != 'cancelled' AND staff_id IS NOT NULL`,
+    [location, date]
+  );
+
+  const slotStart = toMins(time);
+  const slotEnd   = slotStart + parseInt(duration) + 15;
+
+  function isBusy(sId) {
+    return existingBookings.some(b => {
+      if (Number(b.staff_id) !== Number(sId)) return false;
+      const bStart = toMins(b.time);
+      const bEnd   = bStart + parseInt(b.duration) + 15;
+      return slotStart < bEnd && slotEnd > bStart;
+    });
+  }
+
+  // Build staff assignments: use specified staffId first, then auto-assign free ones
+  const assignments = [];
+  const usedIds = new Set();
+  if (staffId) { assignments.push(parseInt(staffId)); usedIds.add(parseInt(staffId)); }
+  for (const s of staffRows) {
+    if (assignments.length >= needed) break;
+    if (!usedIds.has(Number(s.id)) && !isBusy(s.id)) {
+      assignments.push(Number(s.id));
+      usedIds.add(Number(s.id));
+      existingBookings.push({ staff_id: s.id, time, duration }); // mark busy for next iteration
+    }
+  }
+  while (assignments.length < needed) assignments.push(null);
+
+  const refs = [];
   try {
-    await db.execute(
-      `INSERT INTO bookings
-        (ref, location, staff_id, service, duration, price, date, time, name, email, phone, notes, pay_method, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [ref, location, staffId || null, service, duration, price, date, time, name, email, phone,
-       notes || null, pay_method || 'cash', bookingStatus]
-    );
-    await db.execute(
-      'INSERT IGNORE INTO blocked_slots (location, date, time) VALUES (?, ?, ?)',
-      [location, date, time]
-    );
+    for (let i = 0; i < needed; i++) {
+      const r = 'BTM-' + Math.floor(100000 + Math.random() * 900000);
+      refs.push(r);
+      await db.execute(
+        `INSERT INTO bookings
+          (ref, location, staff_id, group_size, service, duration, price, date, time, name, email, phone, notes, pay_method, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [r, location, assignments[i], needed, service, duration, price, date, time, name, email, phone,
+         notes || null, pay_method || 'cash', bookingStatus]
+      );
+    }
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 
   if (bookingStatus === 'confirmed') {
-    await sendConfirmations({ ref, name, phone, email, location, service, duration, date, time, price });
+    await sendConfirmations({ ref: refs[0], name, phone, email, location, service, duration, date, time, price });
   }
 
-  res.json({ success: true, ref });
+  res.json({ success: true, ref: refs[0], refs });
 });
 
 // ── GET /api/admin/schedule ──
