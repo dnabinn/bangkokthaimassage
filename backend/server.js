@@ -101,9 +101,12 @@ app.get('/api/slots', async (req, res) => {
        WHERE location = ? AND date = ? AND status != 'cancelled'`,
       [location, date]
     );
+    const CLOSE = 21 * 60; // 21:00
     const taken = [];
     for (const slot of ALL_SLOTS) {
       const slotStart = toMins(slot);
+      // Block slot if massage would run past closing time
+      if (slotStart + dur > CLOSE) { taken.push(slot); continue; }
       const slotEnd   = slotStart + dur + 15;
 
       const overlaps = b => {

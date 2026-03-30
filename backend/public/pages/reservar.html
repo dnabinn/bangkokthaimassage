@@ -1383,14 +1383,15 @@
       B.date.getFullYear() === now.getFullYear();
     document.getElementById(id).innerHTML = slots.map(t => {
       const taken = TAKEN.includes(t);
+      const [hh, mm] = t.split(':').map(Number);
+      const slotMins = hh * 60 + mm;
+      const afterClose = slotMins + (B.duration || 60) > 21 * 60;
       let pastTime = false;
       if (isToday) {
-        const [hh, mm] = t.split(':').map(Number);
-        const slotMins = hh * 60 + mm;
-        const nowMins  = now.getHours() * 60 + now.getMinutes() + 30; // 30 min min notice
+        const nowMins = now.getHours() * 60 + now.getMinutes() + 30; // 30 min min notice
         pastTime = slotMins <= nowMins;
       }
-      const disabled = taken || pastTime;
+      const disabled = taken || pastTime || afterClose;
       const sel = B.time === t;
       return `<button class="time-btn${disabled?' taken':''}${sel?' selected':''}" onclick="${disabled?'':'pickTime(\''+t+'\')'}">${t}</button>`;
     }).join('');
