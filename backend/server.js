@@ -101,7 +101,12 @@ app.get('/api/slots', async (req, res) => {
        WHERE location = ? AND date = ? AND status != 'cancelled'`,
       [location, date]
     );
-    const CLOSE = 21 * 60; // 21:00
+    // Check for a date-specific early close override
+    const [[specialRow]] = await db.execute(
+      'SELECT close_mins FROM special_hours WHERE location = ? AND date = ?',
+      [location, date]
+    );
+    const CLOSE = specialRow ? specialRow.close_mins : 21 * 60;
     const taken = [];
     for (const slot of ALL_SLOTS) {
       const slotStart = toMins(slot);
@@ -569,6 +574,27 @@ app.post('/api/admin/bookings', adminAuth, async (req, res) => {
   res.json({ success: true, ref: refs[0], refs });
 });
 
+// ── POST /api/admin/special-hours ── set early close for a date
+app.post('/api/admin/special-hours', adminAuth, async (req, res) => {
+  const { location, date, close_time } = req.body; // close_time e.g. "18:00"
+  if (!location || !date || !close_time) return res.status(400).json({ error: 'location, date and close_time required' });
+  const [h, m] = close_time.split(':').map(Number);
+  const close_mins = h * 60 + (m || 0);
+  await db.execute(
+    'INSERT INTO special_hours (location, date, close_mins) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE close_mins = VALUES(close_mins)',
+    [location, date, close_mins]
+  );
+  res.json({ success: true });
+});
+
+// ── DELETE /api/admin/special-hours ── remove override (revert to 21:00)
+app.delete('/api/admin/special-hours', adminAuth, async (req, res) => {
+  const { location, date } = req.body;
+  if (!location || !date) return res.status(400).json({ error: 'location and date required' });
+  await db.execute('DELETE FROM special_hours WHERE location = ? AND date = ?', [location, date]);
+  res.json({ success: true });
+});
+
 // ── GET /api/admin/schedule ──
 app.get('/api/admin/schedule', adminAuth, async (req, res) => {
   const { date } = req.query;
@@ -786,6 +812,23 @@ async function migrate() {
   } catch (err) {
     // Column already exists — ignore
   }
+
+  // 3c. Create special_hours table (date-specific early close overrides)
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS special_hours (
+      location    VARCHAR(20) NOT NULL,
+      date        DATE        NOT NULL,
+      close_mins  INT         NOT NULL,
+      PRIMARY KEY (location, date)
+    )
+  `);
+
+  // Seed April 1 2026 early close at 18:00 for both locations
+  await db.execute(
+    `INSERT IGNORE INTO special_hours (location, date, close_mins) VALUES
+      ('saldanha', '2026-04-01', 1080),
+      ('caparica', '2026-04-01', 1080)`
+  );
 
   // 4. Seed staff if table is empty
   const [[{ count }]] = await db.execute('SELECT COUNT(*) as count FROM staff');
