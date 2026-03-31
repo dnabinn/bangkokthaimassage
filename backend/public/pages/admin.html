@@ -1093,19 +1093,21 @@
     const loc = document.getElementById('mb-location').value;
     const max = loc === 'saldanha' ? 2 : 3;
     _mbGroupSize = Math.min(max, Math.max(1, _mbGroupSize + delta));
+    const btns = document.querySelectorAll('.mb-group-btn');
     document.getElementById('mb-group-display').textContent = _mbGroupSize;
-    document.querySelector('.mb-group-btn:first-child').disabled = _mbGroupSize <= 1;
-    document.querySelector('.mb-group-btn:last-child').disabled  = _mbGroupSize >= max;
+    btns[0].disabled = _mbGroupSize <= 1;
+    btns[1].disabled = _mbGroupSize >= max;
   }
 
   function mbResetGroup() {
     const loc = document.getElementById('mb-location').value;
     const max = loc === 'saldanha' ? 2 : 3;
     _mbGroupSize = 1;
+    const btns = document.querySelectorAll('.mb-group-btn');
     document.getElementById('mb-group-display').textContent = '1';
     document.getElementById('mb-group-max-note').textContent = `máx. ${max}`;
-    document.querySelector('.mb-group-btn:first-child').disabled = true;
-    document.querySelector('.mb-group-btn:last-child').disabled  = false;
+    btns[0].disabled = true;
+    btns[1].disabled = false;
   }
 
   document.getElementById('mb-location').addEventListener('change', mbResetGroup);
