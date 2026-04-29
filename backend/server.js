@@ -823,11 +823,13 @@ async function migrate() {
     )
   `);
 
-  // Seed April 1 2026 early close at 18:00 for both locations
+  // Seed special early-close dates for both locations
   await db.execute(
     `INSERT IGNORE INTO special_hours (location, date, close_mins) VALUES
       ('saldanha', '2026-04-01', 1080),
-      ('caparica', '2026-04-01', 1080)`
+      ('caparica', '2026-04-01', 1080),
+      ('saldanha', '2026-05-01', 1140),
+      ('caparica', '2026-05-01', 1140)`
   );
 
   // 4. Seed staff if table is empty
