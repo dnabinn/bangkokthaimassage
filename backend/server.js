@@ -68,6 +68,17 @@ app.get('/api/health', async (_req, res) => {
   }
 });
 
+// ── POST /api/validate-coupon ──
+const COUPONS = {
+  'BANGKOK': { discount: 0.10, label: '10% off' }
+};
+app.post('/api/validate-coupon', (req, res) => {
+  const code = (req.body.code || '').toUpperCase().trim();
+  const coupon = COUPONS[code];
+  if (!coupon) return res.json({ valid: false });
+  res.json({ valid: true, discount: coupon.discount, label: coupon.label });
+});
+
 // ── GET /api/slots ──
 // Returns taken time slots based on STAFF AVAILABILITY, not blocked_slots table.
 // A slot is "taken" when fewer than groupSize therapists are free for the full duration.

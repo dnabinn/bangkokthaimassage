@@ -451,6 +451,28 @@
     .field-error { font-size: 0.7rem; color: #C0392B; margin-top: 0.3rem; display: none; }
     .field-error.show { display: block; }
 
+    /* ── COUPON ── */
+    .coupon-wrap { margin-bottom: 20px; }
+    .coupon-row { display: flex; gap: 8px; }
+    .coupon-input {
+      flex: 1; padding: 10px 14px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 14px; font-family: inherit;
+      letter-spacing: 0.06em; outline: none; transition: border-color .2s;
+      text-transform: uppercase;
+    }
+    .coupon-input:focus { border-color: var(--gold); }
+    .coupon-btn {
+      padding: 10px 18px; background: var(--green); color: #fff;
+      border: none; border-radius: 8px; font-size: 13px; letter-spacing: 0.08em;
+      text-transform: uppercase; cursor: pointer; white-space: nowrap;
+      transition: background .2s;
+    }
+    .coupon-btn:hover { background: var(--teal); }
+    .coupon-msg { font-size: 13px; margin-top: 6px; min-height: 18px; }
+    .coupon-msg.ok  { color: #2e7d32; }
+    .coupon-msg.err { color: var(--red); }
+    .sidebar-discount { color: #2e7d32; font-size: 13px; }
+
     /* ── STEP 5: PAYMENT ── */
     .pay-methods {
       display: grid;
@@ -1030,6 +1052,15 @@
         <h2 class="step-title" data-pt="Pagamento" data-en="Payment">Pagamento</h2>
         <p class="step-sub" data-pt="Escolha o método de pagamento para confirmar a sua reserva." data-en="Choose your payment method to confirm your booking.">Escolha o método de pagamento para confirmar a sua reserva.</p>
 
+        <!-- Coupon -->
+        <div class="coupon-wrap">
+          <div class="coupon-row">
+            <input class="coupon-input" id="couponInput" type="text" placeholder="Código de desconto" data-pt-placeholder="Código de desconto" data-en-placeholder="Discount code" oninput="this.value=this.value.toUpperCase()">
+            <button class="coupon-btn" onclick="applyCoupon()" data-pt="Aplicar" data-en="Apply">Aplicar</button>
+          </div>
+          <div class="coupon-msg" id="couponMsg"></div>
+        </div>
+
         <div class="pay-methods">
           <div class="pay-method-btn selected" id="pm-card" onclick="selectPayMethod('card')">
             <span class="pay-method-btn__icon">💳</span>
@@ -1139,7 +1170,9 @@
     groupSize: 1,
     staffSelections: [],  // [{staffId, staffName}, ...] one per person
     payMethod: 'card',
-    cal: { year: null, month: null }
+    cal: { year: null, month: null },
+    discount: 0,    // fraction e.g. 0.10 for 10%
+    coupon: null    // applied coupon code
   };
   let _cachedStaff = [];
 
@@ -1199,6 +1232,16 @@
       if (line) line.classList.toggle('done', i < n);
     }
     B.step = n;
+    // Reset coupon if going back before payment step
+    if (n < 6) {
+      B.discount = 0; B.coupon = null;
+      const inp = document.getElementById('couponInput');
+      const btn = document.querySelector('.coupon-btn');
+      if (inp) { inp.value = ''; inp.disabled = false; }
+      if (btn) btn.disabled = false;
+      const msg = document.getElementById('couponMsg');
+      if (msg) { msg.textContent = ''; msg.className = 'coupon-msg'; }
+    }
     updateSidebar();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (n === 2 && B.location) renderServices();
@@ -1499,6 +1542,39 @@
   // ═══════════════════════════════════════
   // STEP 5: PAYMENT
   // ═══════════════════════════════════════
+  async function applyCoupon() {
+    const code = document.getElementById('couponInput').value.trim().toUpperCase();
+    const msgEl = document.getElementById('couponMsg');
+    const isEn  = currentLang === 'en';
+    if (!code) return;
+    try {
+      const res  = await fetch(`${BACKEND_URL}/api/validate-coupon`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        B.discount = 0; B.coupon = null;
+        msgEl.className = 'coupon-msg err';
+        msgEl.textContent = isEn ? 'Invalid coupon code.' : 'Código de desconto inválido.';
+      } else {
+        B.discount = data.discount;
+        B.coupon   = code;
+        msgEl.className = 'coupon-msg ok';
+        msgEl.textContent = isEn
+          ? `✓ ${Math.round(data.discount * 100)}% discount applied!`
+          : `✓ Desconto de ${Math.round(data.discount * 100)}% aplicado!`;
+        document.getElementById('couponInput').disabled = true;
+        document.querySelector('.coupon-btn').disabled  = true;
+      }
+    } catch (_) {
+      msgEl.className = 'coupon-msg err';
+      msgEl.textContent = isEn ? 'Could not validate coupon.' : 'Não foi possível validar o código.';
+    }
+    updateSidebar();
+  }
+
   function selectPayMethod(method) {
     document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('selected'));
     document.getElementById('pm-' + method).classList.add('selected');
@@ -1534,7 +1610,8 @@
     const svcName = isEn ? B.service.nameEn : B.service.name;
     const dateISO = `${B.date.getFullYear()}-${String(B.date.getMonth()+1).padStart(2,'0')}-${String(B.date.getDate()).padStart(2,'0')}`;
 
-    const totalPrice = B.price * B.groupSize;
+    const basePrice  = B.price * B.groupSize;
+    const totalPrice = Math.round(basePrice * (1 - B.discount) * 100) / 100;
 
     // Build one base payload per person
     const makePayload = (personIdx) => ({
@@ -1676,7 +1753,16 @@
         ${B.time ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Time':'Hora'}</span><span class="sum-row__val">${B.time}</span></div>` : ''}
         ${B.groupSize > 1 ? `<div class="sum-row"><span class="sum-row__key">${isEn?'People':'Pessoas'}</span><span class="sum-row__val">${B.groupSize}</span></div>` : ''}
         ${B.staffSelections.filter(Boolean).length > 0 ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Therapist(s)':'Terapeuta(s)'}</span><span class="sum-row__val">${B.staffSelections.filter(Boolean).map(s=>s.staffName).join(', ')}</span></div>` : ''}
-        ${B.price ? `<div class="sum-row sum-row--total"><span class="sum-row__key">Total</span><span class="sum-row__val gold">€${B.price * B.groupSize}</span></div>` : ''}
+        ${B.price ? (() => {
+          const sub = B.price * B.groupSize;
+          const disc = B.discount > 0 ? Math.round(sub * B.discount * 100) / 100 : 0;
+          const total = Math.round((sub - disc) * 100) / 100;
+          return (disc > 0
+            ? `<div class="sum-row"><span class="sum-row__key">${isEn?'Subtotal':'Subtotal'}</span><span class="sum-row__val">€${sub.toFixed(2)}</span></div>
+               <div class="sum-row sidebar-discount"><span class="sum-row__key">${isEn?'Discount':'Desconto'} (${B.coupon})</span><span class="sum-row__val">−€${disc.toFixed(2)}</span></div>`
+            : '') +
+            `<div class="sum-row sum-row--total"><span class="sum-row__key">Total</span><span class="sum-row__val gold">€${total.toFixed(2)}</span></div>`;
+        })() : ''}
       </div>
       ${B.service ? `<button class="sidebar-edit" onclick="goStep(2)">${isEn?'Change service':'Alterar serviço'}</button>` : ''}
       ${B.date ? `<button class="sidebar-edit" onclick="goStep(3)">${isEn?'Change date':'Alterar data'}</button>` : ''}
