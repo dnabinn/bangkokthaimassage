@@ -1654,7 +1654,7 @@
 
       } else if (B.payMethod === 'mbway') {
         const mbwayPhone = document.getElementById('mbwayNum').value.trim();
-        const mbRes  = await fetch(`${BACKEND_URL}/api/mbway-charge`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ phone: mbwayPhone, amount: totalPrice }) });
+        const mbRes  = await fetch(`${BACKEND_URL}/api/mbway-charge`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ phone: mbwayPhone, amount: totalPrice, name, email, phone: phone, service: svcName, duration: B.duration, location: B.location, date: dateISO, time: B.time, groupSize: B.groupSize, coupon: B.coupon || null }) });
         const mbData = await mbRes.json();
         if (!mbRes.ok) throw new Error(mbData.error);
         // First person gets the paymentIntentId; rest are linked
@@ -1669,7 +1669,7 @@
 
       } else {
         // Stripe card — charge total for all people
-        const piRes  = await fetch(`${BACKEND_URL}/api/create-payment-intent`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ amount: totalPrice }) });
+        const piRes  = await fetch(`${BACKEND_URL}/api/create-payment-intent`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ amount: totalPrice, name, email, service: svcName, duration: B.duration, location: B.location, date: dateISO, time: B.time, groupSize: B.groupSize, coupon: B.coupon || null }) });
         const piData = await piRes.json();
         if (!piRes.ok) throw new Error(piData.error);
         const { paymentIntent, error: stripeErr } = await stripe.confirmCardPayment(piData.clientSecret, { payment_method: { card: cardElement } });

@@ -154,14 +154,28 @@ app.get('/api/slots', async (req, res) => {
 
 // ── POST /api/create-payment-intent ──
 app.post('/api/create-payment-intent', async (req, res) => {
-  const { amount, paymentMethod } = req.body;
+  const { amount, paymentMethod, name, email, service, duration, location, date, time, groupSize, coupon } = req.body;
   if (!amount || amount <= 0) {
     return res.status(400).json({ error: 'amount is required' });
   }
   try {
+    const locLabel = location === 'saldanha' ? 'Saldanha' : 'Costa da Caparica';
     const params = {
       amount: Math.round(amount * 100), // euros → cents
       currency: 'eur',
+      description: `Bangkok Thai Massage — ${name || 'Guest'} — ${service || ''} ${duration || ''}min — ${locLabel} — ${date || ''} ${time || ''}${groupSize > 1 ? ` (${groupSize} people)` : ''}`,
+      receipt_email: email || undefined,
+      metadata: {
+        customer_name:  name     || '',
+        customer_email: email    || '',
+        service:        service  || '',
+        duration_min:   String(duration  || ''),
+        location:       locLabel,
+        date:           date     || '',
+        time:           time     || '',
+        group_size:     String(groupSize || 1),
+        ...(coupon ? { coupon } : {})
+      }
     };
     if (paymentMethod === 'mb_way') {
       params.payment_method_types = ['mb_way'];
@@ -179,17 +193,31 @@ app.post('/api/create-payment-intent', async (req, res) => {
 // Creates AND confirms a MB WAY PaymentIntent server-side.
 // Stripe sends the push notification to the customer's MB WAY app directly.
 app.post('/api/mbway-charge', async (req, res) => {
-  const { phone, amount } = req.body;
+  const { phone, amount, name, email, service, duration, location, date, time, groupSize, coupon } = req.body;
   if (!phone || !amount) {
     return res.status(400).json({ error: 'phone and amount are required' });
   }
   try {
     const toPhone = phone.startsWith('+') ? phone : '+351' + phone.replace(/\s/g, '');
+    const locLabel = location === 'saldanha' ? 'Saldanha' : 'Costa da Caparica';
     // Create PaymentIntent for MB WAY
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100),
       currency: 'eur',
       payment_method_types: ['mb_way'],
+      description: `Bangkok Thai Massage — ${name || 'Guest'} — ${service || ''} ${duration || ''}min — ${locLabel} — ${date || ''} ${time || ''}${groupSize > 1 ? ` (${groupSize} people)` : ''}`,
+      receipt_email: email || undefined,
+      metadata: {
+        customer_name:  name     || '',
+        customer_email: email    || '',
+        service:        service  || '',
+        duration_min:   String(duration  || ''),
+        location:       locLabel,
+        date:           date     || '',
+        time:           time     || '',
+        group_size:     String(groupSize || 1),
+        ...(coupon ? { coupon } : {})
+      }
     });
     // Confirm server-side with phone — Stripe sends push to MB WAY app
     const confirmed = await stripe.paymentIntents.confirm(paymentIntent.id, {
