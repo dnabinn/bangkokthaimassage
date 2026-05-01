@@ -56,7 +56,7 @@ const mailer = nodemailer.createTransport({
 const LOC_ADDR = {
   saldanha: 'R. Gomes Freire 223C, 1150-178 Lisboa',
   caparica: 'R. dos Pescadores 5, 2825-280 Costa da Caparica',
-  ourique: 'Campo de Ourique, Lisboa'
+  ourique: 'R. Ferreira Borges 191, 1350-131 Lisboa'
 };
 
 // ── HEALTH CHECK ──
