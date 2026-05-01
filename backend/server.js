@@ -874,7 +874,8 @@ async function migrate() {
       ('saldanha', '2026-04-01', 1080),
       ('caparica', '2026-04-01', 1080),
       ('saldanha', '2026-05-01', 1140),
-      ('caparica', '2026-05-01', 1140)`
+      ('caparica', '2026-05-01', 1140),
+      ('ourique',  '2026-05-01', 1140)`
   );
 
   // 4. Seed staff if table is empty
