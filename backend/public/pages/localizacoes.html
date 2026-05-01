@@ -510,7 +510,7 @@
         <span data-pt="Localizações" data-en="Locations">Localizações</span>
         <em data-pt="& Serviços" data-en="& Services">& Serviços</em>
       </h1>
-      <p class="page-hero__sub" data-pt="Duas localizações em Lisboa. Consulte os serviços e preços de cada espaço." data-en="Two locations in Lisbon. Browse the services and prices at each space.">Duas localizações em Lisboa. Consulte os serviços e preços de cada espaço.</p>
+      <p class="page-hero__sub" data-pt="Três localizações em Lisboa. Consulte os serviços e preços de cada espaço." data-en="Three locations in Lisbon. Browse the services and prices at each space.">Três localizações em Lisboa. Consulte os serviços e preços de cada espaço.</p>
     </div>
   </section>
 
@@ -525,6 +525,11 @@
       <button class="loc-tab" id="tab-caparica" onclick="switchLoc('caparica')">
         <span class="loc-tab__city" data-pt="Setúbal" data-en="Setúbal">Setúbal</span>
         <span class="loc-tab__name">Costa da Caparica</span>
+      </button>
+      <div class="loc-switcher__sep"></div>
+      <button class="loc-tab" id="tab-ourique" onclick="switchLoc('ourique')">
+        <span class="loc-tab__city">Lisboa</span>
+        <span class="loc-tab__name">Campo de Ourique</span>
       </button>
       <div class="loc-switcher__book">
         <a href="reservar.html" class="btn-book" data-pt="Reservar" data-en="Book Now">Reservar</a>
@@ -1320,6 +1325,320 @@
     </div><!-- end svc-section -->
   </div><!-- end caparica panel -->
 
+  <!-- ═══════════════════════════════════════ -->
+  <!-- CAMPO DE OURIQUE PANEL -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="loc-panel" id="panel-ourique">
+
+    <div class="loc-info">
+      <div class="loc-info__inner reveal">
+        <div class="loc-info__block">
+          <span class="loc-info__label" data-pt="Morada" data-en="Address">Morada</span>
+          <div class="loc-info__value">
+            R. [placeholder]<br>
+            Campo de Ourique, Lisboa<br>
+            <a href="https://maps.google.com/?q=Campo+de+Ourique+Lisboa" target="_blank" style="font-size:0.78rem;margin-top:0.5rem;display:inline-block;" data-pt="Ver no mapa →" data-en="View on map →">Ver no mapa →</a>
+          </div>
+        </div>
+        <div class="loc-info__block">
+          <span class="loc-info__label" data-pt="Contacto" data-en="Contact">Contacto</span>
+          <div class="loc-info__value">
+            <a href="tel:+351XXXXXXXXX">+351 XXX XXX XXX</a><br>
+            <a href="https://wa.me/+351XXXXXXXXX" target="_blank" style="font-size:0.82rem;" data-pt="WhatsApp →" data-en="WhatsApp →">WhatsApp →</a><br>
+            <a href="mailto:geral@bangkokthaimassage.pt" style="font-size:0.78rem;">geral@bangkokthaimassage.pt</a>
+          </div>
+        </div>
+        <div class="loc-info__block">
+          <span class="loc-info__label" data-pt="Horário" data-en="Hours">Horário</span>
+          <div class="loc-hours-grid">
+            <span class="day" data-pt="Seg – Dom" data-en="Mon – Sun">Seg – Dom</span>
+            <span class="hours">10:00 – 21:00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-strip">
+      <div class="map-strip__inner">
+        <div class="map-embed reveal">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3113!2d-9.1590!3d38.7170!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzjCsDQzJzAxLjIiTiA5wrAwOSczMi40Ilc!5e0!3m2!1spt!2spt!4v1000000000002!5m2!1spt!2spt"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Bangkok Thai Massage Campo de Ourique">
+          </iframe>
+        </div>
+        <div class="map-actions">
+          <a href="https://maps.google.com/?q=Campo+de+Ourique+Lisboa" target="_blank" class="btn-outline btn-sm" data-pt="Abrir no Google Maps" data-en="Open in Google Maps">Abrir no Google Maps</a>
+          <a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm" data-pt="Contactar por WhatsApp" data-en="Contact via WhatsApp">Contactar por WhatsApp</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="svc-section">
+      <div class="svc-section__inner">
+        <div class="svc-section__header reveal">
+          <div class="svc-section__header-left">
+            <span class="section-eyebrow">Campo de Ourique · Lisboa</span>
+            <h2 class="section-title" style="margin-bottom:0" data-pt="Menu de Serviços" data-en="Services Menu">Menu de Serviços</h2>
+          </div>
+          <p class="svc-section__note" data-pt="Todos os preços incluem IVA. Clique em cada serviço para ver os preços completos." data-en="All prices include VAT. Click each service to see full pricing.">Todos os preços incluem IVA. Clique em cada serviço para ver os preços completos.</p>
+        </div>
+
+        <div class="svc-filters" id="filters-our">
+          <button class="svc-filter-btn active" onclick="filterSvc('our','all',this)" data-pt="Todos" data-en="All">Todos</button>
+          <button class="svc-filter-btn" onclick="filterSvc('our','relaxamento',this)" data-pt="Relaxamento" data-en="Relaxation">Relaxamento</button>
+          <button class="svc-filter-btn" onclick="filterSvc('our','tradicional',this)" data-pt="Tradicional Thai" data-en="Traditional Thai">Tradicional Thai</button>
+          <button class="svc-filter-btn" onclick="filterSvc('our','premium',this)" data-pt="Premium" data-en="Premium">Premium</button>
+          <button class="svc-filter-btn" onclick="filterSvc('our','casais',this)" data-pt="Casais" data-en="Couples">Casais</button>
+          <button class="svc-filter-btn" onclick="filterSvc('our','especial',this)" data-pt="Especial" data-en="Special">Especial</button>
+        </div>
+
+        <div class="svc-list" id="list-our">
+
+          <div class="svc-row" data-cat="relaxamento" onclick="toggleSvc(this)">
+            <div class="svc-row__main"><span class="svc-row__num">01</span>
+              <div class="svc-row__info">
+                <div class="svc-row__name" data-pt="Massagem de Relaxamento" data-en="Relaxation Massage">Massagem de Relaxamento</div>
+                <div class="svc-row__tagline" data-pt="Técnicas calmantes · Alívio da tensão · Clareza mental" data-en="Calming techniques · Tension relief · Mental clarity">Técnicas calmantes · Alívio da tensão · Clareza mental</div>
+              </div></div>
+            <div class="svc-row__right"><span class="svc-row__from">desde €30</span><div class="svc-row__chevron">▾</div></div>
+            <div class="svc-detail">
+              <p class="svc-detail__desc" data-pt="Experimente um relaxamento profundo e revitalização através de técnicas calmantes que aliviam a tensão e promovem a clareza mental." data-en="Experience deep relaxation and revitalization through calming techniques that relieve tension and promote mental clarity.">Experimente um relaxamento profundo e revitalização através de técnicas calmantes que aliviam a tensão e promovem a clareza mental.</p>
+              <div class="svc-detail__prices"><span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+                <div class="price-grid">
+                  <div class="price-row"><span class="price-row__dur">30 min</span><span class="price-row__amt">€30</span></div>
+                  <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€50</span></div>
+                  <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€75</span></div>
+                  <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€100</span></div>
+                </div>
+                <div class="svc-detail__book"><a href="reservar.html?loc=ourique&svc=relaxamento" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a><a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm">WhatsApp</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-row" data-cat="tradicional" onclick="toggleSvc(this)">
+            <div class="svc-row__main"><span class="svc-row__num">02</span>
+              <div class="svc-row__info">
+                <div class="svc-row__name" data-pt="Massagem Tradicional Thai" data-en="Traditional Thai Massage">Massagem Tradicional Thai</div>
+                <div class="svc-row__tagline" data-pt="Acupressão · Alongamento · Trabalho energético" data-en="Acupressure · Stretching · Energy work">Acupressão · Alongamento · Trabalho energético</div>
+              </div></div>
+            <div class="svc-row__right"><span class="svc-row__from">desde €50</span><div class="svc-row__chevron">▾</div></div>
+            <div class="svc-detail">
+              <p class="svc-detail__desc" data-pt="Técnica milenar que combina acupressão, alongamento e trabalho energético para aliviar o stress e restaurar o equilíbrio." data-en="Ancient technique combining acupressure, stretching and energy work to relieve stress and restore balance.">Técnica milenar que combina acupressão, alongamento e trabalho energético para aliviar o stress e restaurar o equilíbrio.</p>
+              <div class="svc-detail__prices"><span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+                <div class="price-grid">
+                  <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€50</span></div>
+                  <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€75</span></div>
+                  <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€100</span></div>
+                </div>
+                <div class="svc-detail__book"><a href="reservar.html?loc=ourique&svc=tradicional" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a><a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm">WhatsApp</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-row" data-cat="relaxamento" onclick="toggleSvc(this)">
+            <div class="svc-row__main"><span class="svc-row__num">03</span>
+              <div class="svc-row__info">
+                <div class="svc-row__name" data-pt="Massagem Desportiva / Tecido Profundo" data-en="Sports / Deep Tissue Massage">Massagem Desportiva / Tecido Profundo</div>
+                <div class="svc-row__tagline" data-pt="Tensão muscular · Flexibilidade · Recuperação" data-en="Muscle tension · Flexibility · Recovery">Tensão muscular · Flexibilidade · Recuperação</div>
+              </div></div>
+            <div class="svc-row__right"><span class="svc-row__from">desde €30</span><div class="svc-row__chevron">▾</div></div>
+            <div class="svc-detail">
+              <p class="svc-detail__desc" data-pt="Técnicas direcionadas para aliviar a tensão muscular e melhorar a flexibilidade." data-en="Targeted techniques to relieve muscle tension and improve flexibility.">Técnicas direcionadas para aliviar a tensão muscular e melhorar a flexibilidade.</p>
+              <div class="svc-detail__prices"><span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+                <div class="price-grid">
+                  <div class="price-row"><span class="price-row__dur">30 min</span><span class="price-row__amt">€30</span></div>
+                  <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€50</span></div>
+                  <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€75</span></div>
+                  <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€100</span></div>
+                </div>
+                <div class="svc-detail__book"><a href="reservar.html?loc=ourique&svc=desportiva" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a><a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm">WhatsApp</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-row" data-cat="local" onclick="toggleSvc(this)">
+            <div class="svc-row__main"><span class="svc-row__num">04</span>
+              <div class="svc-row__info">
+                <div class="svc-row__name" data-pt="Massagem nos Pés" data-en="Foot Massage">Massagem nos Pés</div>
+                <div class="svc-row__tagline" data-pt="Reflexologia · Circulação · Alívio da dor" data-en="Reflexology · Circulation · Pain relief">Reflexologia · Circulação · Alívio da dor</div>
+              </div></div>
+            <div class="svc-row__right"><span class="svc-row__from">desde €30</span><div class="svc-row__chevron">▾</div></div>
+            <div class="svc-detail">
+              <p class="svc-detail__desc" data-pt="Massagem de pés inspirada na reflexologia para reduzir o stress e melhorar a circulação." data-en="Foot massage inspired by reflexology to reduce stress and improve circulation.">Massagem de pés inspirada na reflexologia para reduzir o stress e melhorar a circulação.</p>
+              <div class="svc-detail__prices"><span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+                <div class="price-grid">
+                  <div class="price-row"><span class="price-row__dur">30 min</span><span class="price-row__amt">€30</span></div>
+                  <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€50</span></div>
+                </div>
+                <div class="svc-detail__book"><a href="reservar.html?loc=ourique&svc=pes" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a><a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm">WhatsApp</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-row" data-cat="local" onclick="toggleSvc(this)">
+            <div class="svc-row__main"><span class="svc-row__num">05</span>
+              <div class="svc-row__info">
+                <div class="svc-row__name" data-pt="Cabeça, Pescoço e Ombro" data-en="Head, Neck & Shoulder">Cabeça, Pescoço e Ombro</div>
+                <div class="svc-row__tagline" data-pt="Pressão suave · Tensão cervical · Relaxamento" data-en="Gentle pressure · Cervical tension · Relaxation">Pressão suave · Tensão cervical · Relaxamento</div>
+              </div></div>
+            <div class="svc-row__right"><span class="svc-row__from">desde €30</span><div class="svc-row__chevron">▾</div></div>
+            <div class="svc-detail">
+              <p class="svc-detail__desc" data-pt="Relaxe os músculos do pescoço, ombros e cabeça com pressão suave." data-en="Relax the muscles of the neck, shoulders and head with gentle pressure.">Relaxe os músculos do pescoço, ombros e cabeça com pressão suave.</p>
+              <div class="svc-detail__prices"><span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+                <div class="price-grid">
+                  <div class="price-row"><span class="price-row__dur">30 min</span><span class="price-row__amt">€30</span></div>
+                  <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€50</span></div>
+                </div>
+                <div class="svc-detail__book"><a href="reservar.html?loc=ourique&svc=cabeca" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a><a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm">WhatsApp</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-row" data-cat="premium" onclick="toggleSvc(this)">
+            <div class="svc-row__main"><span class="svc-row__num">06</span>
+              <div class="svc-row__info">
+                <div class="svc-row__name"><span data-pt="Massagem com Ervas Quentes" data-en="Hot Herb Massage">Massagem com Ervas Quentes</span><span class="svc-row__badge badge-premium">Premium</span></div>
+                <div class="svc-row__tagline" data-pt="Ervas tailandesas · Calor terapêutico · Relaxamento profundo" data-en="Thai herbs · Therapeutic heat · Deep relaxation">Ervas tailandesas · Calor terapêutico · Relaxamento profundo</div>
+              </div></div>
+            <div class="svc-row__right"><span class="svc-row__from">desde €85</span><div class="svc-row__chevron">▾</div></div>
+            <div class="svc-detail">
+              <p class="svc-detail__desc" data-pt="Compressas de ervas tailandesas aquecidas aplicadas em pontos específicos do corpo para relaxamento profundo." data-en="Heated Thai herb compresses applied to specific points on the body for deep relaxation.">Compressas de ervas tailandesas aquecidas aplicadas em pontos específicos do corpo para relaxamento profundo.</p>
+              <div class="svc-detail__prices"><span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+                <div class="price-grid">
+                  <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€85</span></div>
+                  <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€110</span></div>
+                </div>
+                <div class="svc-detail__book"><a href="reservar.html?loc=ourique&svc=ervas" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a><a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm">WhatsApp</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-row" data-cat="relaxamento" onclick="toggleSvc(this)">
+            <div class="svc-row__main"><span class="svc-row__num">07</span>
+              <div class="svc-row__info">
+                <div class="svc-row__name" data-pt="Massagem com Óleo de Coco" data-en="Coconut Oil Massage">Massagem com Óleo de Coco</div>
+                <div class="svc-row__tagline" data-pt="Hidratação · Aroma de coco · Relaxamento muscular" data-en="Hydration · Coconut aroma · Muscle relaxation">Hidratação · Aroma de coco · Relaxamento muscular</div>
+              </div></div>
+            <div class="svc-row__right"><span class="svc-row__from">desde €55</span><div class="svc-row__chevron">▾</div></div>
+            <div class="svc-detail">
+              <p class="svc-detail__desc" data-pt="Hidrata a pele e relaxa a musculatura com o suave aroma do óleo de coco puro." data-en="Moisturizes the skin and relaxes the muscles with the gentle aroma of pure coconut oil.">Hidrata a pele e relaxa a musculatura com o suave aroma do óleo de coco puro.</p>
+              <div class="svc-detail__prices"><span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+                <div class="price-grid">
+                  <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€55</span></div>
+                  <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€80</span></div>
+                  <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€105</span></div>
+                </div>
+                <div class="svc-detail__book"><a href="reservar.html?loc=ourique&svc=coco" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a><a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm">WhatsApp</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-row" data-cat="casais" onclick="toggleSvc(this)">
+            <div class="svc-row__main"><span class="svc-row__num">08</span>
+              <div class="svc-row__info">
+                <div class="svc-row__name"><span data-pt="Massagem para Casais" data-en="Couples Massage">Massagem para Casais</span><span class="svc-row__badge badge-couples" data-pt="2 pessoas" data-en="2 people">2 pessoas</span></div>
+                <div class="svc-row__tagline" data-pt="Relaxamento partilhado · Conexão · Paz" data-en="Shared relaxation · Connection · Peace">Relaxamento partilhado · Conexão · Paz</div>
+              </div></div>
+            <div class="svc-row__right"><span class="svc-row__from">desde €95</span><div class="svc-row__chevron">▾</div></div>
+            <div class="svc-detail">
+              <p class="svc-detail__desc" data-pt="Experiência partilhada para dois com terapeutas em simultâneo." data-en="Shared experience for two with simultaneous therapists.">Experiência partilhada para dois com terapeutas em simultâneo.</p>
+              <div class="svc-detail__prices"><span class="svc-detail__prices-title" data-pt="Preços (2 pessoas)" data-en="Prices (2 people)">Preços (2 pessoas)</span>
+                <div class="price-grid">
+                  <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€95</span></div>
+                  <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€145</span></div>
+                  <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€180</span></div>
+                </div>
+                <div class="svc-detail__book"><a href="reservar.html?loc=ourique&svc=casais" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a><a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm">WhatsApp</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-row" data-cat="premium" onclick="toggleSvc(this)">
+            <div class="svc-row__main"><span class="svc-row__num">09</span>
+              <div class="svc-row__info">
+                <div class="svc-row__name" data-pt="Pedra Quente" data-en="Hot Stone">Pedra Quente</div>
+                <div class="svc-row__tagline" data-pt="Pedras basálticas · Pressão suave · Relaxamento total" data-en="Basalt stones · Gentle pressure · Total relaxation">Pedras basálticas · Pressão suave · Relaxamento total</div>
+              </div></div>
+            <div class="svc-row__right"><span class="svc-row__from">desde €85</span><div class="svc-row__chevron">▾</div></div>
+            <div class="svc-detail">
+              <p class="svc-detail__desc" data-pt="Pedras lisas aquecidas para relaxamento profundo dos músculos e alívio do stress." data-en="Smooth heated stones for deep muscle relaxation and stress relief.">Pedras lisas aquecidas para relaxamento profundo dos músculos e alívio do stress.</p>
+              <div class="svc-detail__prices"><span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+                <div class="price-grid">
+                  <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€85</span></div>
+                  <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€110</span></div>
+                </div>
+                <div class="svc-detail__book"><a href="reservar.html?loc=ourique&svc=pedra" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a><a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm">WhatsApp</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-row" data-cat="relaxamento" onclick="toggleSvc(this)">
+            <div class="svc-row__main"><span class="svc-row__num">10</span>
+              <div class="svc-row__info">
+                <div class="svc-row__name" data-pt="Massagem Combinada" data-en="Combined Massage">Massagem Combinada</div>
+                <div class="svc-row__tagline" data-pt="Thai + óleo + acupressão · Resultado personalizado" data-en="Thai + oil + acupressure · Personalised result">Thai + óleo + acupressão · Resultado personalizado</div>
+              </div></div>
+            <div class="svc-row__right"><span class="svc-row__from">desde €50</span><div class="svc-row__chevron">▾</div></div>
+            <div class="svc-detail">
+              <p class="svc-detail__desc" data-pt="Combina alongamentos tailandeses, massagem com óleo e acupressão para uma experiência personalizada." data-en="Combines Thai stretches, oil massage and acupressure for a personalised experience.">Combina alongamentos tailandeses, massagem com óleo e acupressão para uma experiência personalizada.</p>
+              <div class="svc-detail__prices"><span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+                <div class="price-grid">
+                  <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€50</span></div>
+                  <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€75</span></div>
+                  <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€100</span></div>
+                </div>
+                <div class="svc-detail__book"><a href="reservar.html?loc=ourique&svc=combinada" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a><a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm">WhatsApp</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-row" data-cat="relaxamento" onclick="toggleSvc(this)">
+            <div class="svc-row__main"><span class="svc-row__num">11</span>
+              <div class="svc-row__info">
+                <div class="svc-row__name" data-pt="Óleo Quente com Aroma Perfume" data-en="Warm Aromatherapy Oil">Óleo Quente com Aroma Perfume</div>
+                <div class="svc-row__tagline" data-pt="Aromaterapia · Óleo morno · Relaxamento muscular" data-en="Aromatherapy · Warm oil · Muscle relaxation">Aromaterapia · Óleo morno · Relaxamento muscular</div>
+              </div></div>
+            <div class="svc-row__right"><span class="svc-row__from">desde €55</span><div class="svc-row__chevron">▾</div></div>
+            <div class="svc-detail">
+              <p class="svc-detail__desc" data-pt="Óleo morno com aroma de aromaterapia para relaxamento muscular profundo." data-en="Warm oil with aromatherapy scent for deep muscle relaxation.">Óleo morno com aroma de aromaterapia para relaxamento muscular profundo.</p>
+              <div class="svc-detail__prices"><span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+                <div class="price-grid">
+                  <div class="price-row"><span class="price-row__dur">60 min</span><span class="price-row__amt">€55</span></div>
+                  <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€80</span></div>
+                  <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€105</span></div>
+                </div>
+                <div class="svc-detail__book"><a href="reservar.html?loc=ourique&svc=oleo" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a><a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm">WhatsApp</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-row" data-cat="especial" onclick="toggleSvc(this)">
+            <div class="svc-row__main"><span class="svc-row__num">12</span>
+              <div class="svc-row__info">
+                <div class="svc-row__name"><span data-pt="Massagem com Esfoliação" data-en="Exfoliation Massage">Massagem com Esfoliação</span></div>
+                <div class="svc-row__tagline" data-pt="Esfoliação corporal · Pele suave · Circulação" data-en="Body exfoliation · Smooth skin · Circulation">Esfoliação corporal · Pele suave · Circulação</div>
+              </div></div>
+            <div class="svc-row__right"><span class="svc-row__from">desde €85</span><div class="svc-row__chevron">▾</div></div>
+            <div class="svc-detail">
+              <p class="svc-detail__desc" data-pt="Combinação revitalizante de esfoliação corporal e massagem relaxante que remove as células mortas, melhora a circulação e deixa a pele suave e luminosa." data-en="Revitalizing combination of body exfoliation and relaxing massage that removes dead cells, improves circulation and leaves skin smooth and radiant.">Combinação revitalizante de esfoliação corporal e massagem relaxante que remove as células mortas, melhora a circulação e deixa a pele suave e luminosa.</p>
+              <div class="svc-detail__prices"><span class="svc-detail__prices-title" data-pt="Preços" data-en="Prices">Preços</span>
+                <div class="price-grid">
+                  <div class="price-row"><span class="price-row__dur">90 min</span><span class="price-row__amt">€85</span></div>
+                  <div class="price-row"><span class="price-row__dur">120 min</span><span class="price-row__amt">€110</span></div>
+                </div>
+                <div class="svc-detail__book"><a href="reservar.html?loc=ourique&svc=esfoliacao" class="btn-primary btn-sm" data-pt="Reservar" data-en="Book">Reservar</a><a href="https://wa.me/+351XXXXXXXXX" target="_blank" class="btn-outline btn-sm">WhatsApp</a></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- end list-our -->
+      </div>
+    </div><!-- end svc-section -->
+  </div><!-- end ourique panel -->
+
   <!-- DISCLAIMER -->
   <div class="disclaimer">
     <div class="disclaimer__inner">
@@ -1410,8 +1729,8 @@
 
     // Filter services
     function filterSvc(loc, cat, btn) {
-      const listId = loc === 'sal' ? 'list-sal' : 'list-cap';
-      const filtersId = loc === 'sal' ? 'filters-sal' : 'filters-cap';
+      const listId = loc === 'sal' ? 'list-sal' : loc === 'our' ? 'list-our' : 'list-cap';
+      const filtersId = loc === 'sal' ? 'filters-sal' : loc === 'our' ? 'filters-our' : 'filters-cap';
       document.querySelectorAll('#' + filtersId + ' .svc-filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       document.querySelectorAll('#' + listId + ' .svc-row').forEach(row => {
@@ -1429,6 +1748,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const locParam = urlParams.get('loc');
     if (locParam === 'caparica') switchLoc('caparica');
+    if (locParam === 'ourique') switchLoc('ourique');
   </script>
 </body>
 </html>

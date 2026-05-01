@@ -473,6 +473,7 @@
         <select id="mb-location">
           <option value="saldanha">Saldanha</option>
           <option value="caparica">Costa da Caparica</option>
+          <option value="ourique">Campo de Ourique</option>
         </select>
       </div>
       <div class="modal-field">
@@ -596,6 +597,7 @@
         <div class="stat-card"><div class="label">Receita Total</div><div class="value gold" id="stat-revenue">—</div></div>
         <div class="stat-card"><div class="label">Saldanha</div><div class="value" id="stat-saldanha">—</div><div class="sub">reservas confirmadas</div></div>
         <div class="stat-card"><div class="label">Caparica</div><div class="value" id="stat-caparica">—</div><div class="sub">reservas confirmadas</div></div>
+        <div class="stat-card"><div class="label">Campo de Ourique</div><div class="value" id="stat-ourique">—</div><div class="sub">reservas confirmadas</div></div>
       </div>
 
       <!-- Filters -->
@@ -606,6 +608,7 @@
             <option value="">Todos</option>
             <option value="saldanha">Saldanha</option>
             <option value="caparica">Caparica</option>
+            <option value="ourique">Campo de Ourique</option>
           </select>
         </div>
         <div class="filter-group">
@@ -659,6 +662,10 @@
         <div class="staff-card-grid" id="staff-caparica"></div>
       </div>
       <div class="staff-section">
+        <h3>Campo de Ourique</h3>
+        <div class="staff-card-grid" id="staff-ourique"></div>
+      </div>
+      <div class="staff-section">
         <h3>Adicionar Terapeuta</h3>
         <div class="add-staff-form">
           <div class="filter-group">
@@ -670,6 +677,7 @@
             <select id="new-staff-loc">
               <option value="saldanha">Saldanha</option>
               <option value="caparica">Caparica</option>
+              <option value="ourique">Campo de Ourique</option>
             </select>
           </div>
           <div class="filter-group">
@@ -776,11 +784,12 @@
     document.getElementById('stat-revenue').textContent   = '€' + Number(s.revenue ?? 0).toFixed(2);
     document.getElementById('stat-saldanha').textContent  = s.saldanha ?? 0;
     document.getElementById('stat-caparica').textContent  = s.caparica ?? 0;
+    document.getElementById('stat-ourique').textContent   = s.ourique  ?? 0;
   }
 
   // ── RENDER BOOKINGS (per-location pagination) ──
   const PAGE_SIZE = 10;
-  let _bSal = [], _bCap = [], _pageSal = 0, _pageCap = 0;
+  let _bSal = [], _bCap = [], _bOur = [], _pageSal = 0, _pageCap = 0, _pageOur = 0;
 
   function renderBookings(rows) {
     const container = document.getElementById('bookings-container');
@@ -790,18 +799,20 @@
     }
     _bSal = rows.filter(r => r.location === 'saldanha');
     _bCap = rows.filter(r => r.location === 'caparica');
-    _pageSal = 0; _pageCap = 0;
-    container.innerHTML = '<div id="sec-saldanha"></div><div id="sec-caparica"></div>';
+    _bOur = rows.filter(r => r.location === 'ourique');
+    _pageSal = 0; _pageCap = 0; _pageOur = 0;
+    container.innerHTML = '<div id="sec-saldanha"></div><div id="sec-caparica"></div><div id="sec-ourique"></div>';
     renderLocSection('saldanha');
     renderLocSection('caparica');
+    renderLocSection('ourique');
   }
 
   function renderLocSection(loc) {
     const el = document.getElementById('sec-' + loc);
     if (!el) return;
-    const books      = loc === 'saldanha' ? _bSal : _bCap;
-    const page       = loc === 'saldanha' ? _pageSal : _pageCap;
-    const label      = loc === 'saldanha' ? 'Saldanha — Lisboa' : 'Costa da Caparica';
+    const books      = loc === 'saldanha' ? _bSal : loc === 'caparica' ? _bCap : _bOur;
+    const page       = loc === 'saldanha' ? _pageSal : loc === 'caparica' ? _pageCap : _pageOur;
+    const label      = loc === 'saldanha' ? 'Saldanha — Lisboa' : loc === 'caparica' ? 'Costa da Caparica' : 'Campo de Ourique';
     if (!books.length) { el.innerHTML = ''; return; }
 
     const total      = books.length;
@@ -854,15 +865,16 @@
   }
 
   function changeLocPage(loc, delta) {
-    const books = loc === 'saldanha' ? _bSal : _bCap;
+    const books = loc === 'saldanha' ? _bSal : loc === 'caparica' ? _bCap : _bOur;
     const total = Math.ceil(books.length / PAGE_SIZE);
     if (loc === 'saldanha') _pageSal = Math.max(0, Math.min(total-1, _pageSal+delta));
-    else                    _pageCap = Math.max(0, Math.min(total-1, _pageCap+delta));
+    else if (loc === 'caparica') _pageCap = Math.max(0, Math.min(total-1, _pageCap+delta));
+    else                    _pageOur = Math.max(0, Math.min(total-1, _pageOur+delta));
     renderLocSection(loc);
   }
 
   function goLocPage(loc, n) {
-    if (loc === 'saldanha') _pageSal = n; else _pageCap = n;
+    if (loc === 'saldanha') _pageSal = n; else if (loc === 'caparica') _pageCap = n; else _pageOur = n;
     renderLocSection(loc);
   }
 
@@ -968,7 +980,8 @@
 
     const LOC_DEFS = [
       { key: 'saldanha', label: 'Saldanha — Lisboa' },
-      { key: 'caparica', label: 'Costa da Caparica'  }
+      { key: 'caparica', label: 'Costa da Caparica'  },
+      { key: 'ourique',  label: 'Campo de Ourique'   }
     ];
 
     function buildStaffRows(locStaff) {
@@ -1029,8 +1042,10 @@
     const staff = await res.json();
     const sal = staff.filter(s => s.location === 'saldanha');
     const cap = staff.filter(s => s.location === 'caparica');
+    const our = staff.filter(s => s.location === 'ourique');
     document.getElementById('staff-saldanha').innerHTML = sal.map(staffCard).join('') || '<p style="color:var(--muted);font-size:13px">Nenhum terapeuta.</p>';
     document.getElementById('staff-caparica').innerHTML = cap.map(staffCard).join('') || '<p style="color:var(--muted);font-size:13px">Nenhum terapeuta.</p>';
+    document.getElementById('staff-ourique').innerHTML  = our.map(staffCard).join('') || '<p style="color:var(--muted);font-size:13px">Nenhum terapeuta.</p>';
   }
 
   function staffCard(s) {
@@ -1038,7 +1053,7 @@
     return `<div class="staff-item" id="sitem-${s.id}">
       <div>
         <div class="staff-item__name">${esc(s.name)}</div>
-        <div class="staff-item__loc">${s.location === 'saldanha' ? 'Saldanha' : 'Costa da Caparica'}</div>
+        <div class="staff-item__loc">${s.location === 'saldanha' ? 'Saldanha' : s.location === 'ourique' ? 'Campo de Ourique' : 'Costa da Caparica'}</div>
       </div>
       <div class="staff-item__days">${days}</div>
       <label class="toggle-active">
@@ -1091,7 +1106,7 @@
 
   function mbAdjustGroup(delta) {
     const loc = document.getElementById('mb-location').value;
-    const max = loc === 'saldanha' ? 2 : 3;
+    const max = loc === 'caparica' ? 3 : 2;
     _mbGroupSize = Math.min(max, Math.max(1, _mbGroupSize + delta));
     const btns = document.querySelectorAll('.mb-group-btn');
     document.getElementById('mb-group-display').textContent = _mbGroupSize;
@@ -1101,7 +1116,7 @@
 
   function mbResetGroup() {
     const loc = document.getElementById('mb-location').value;
-    const max = loc === 'saldanha' ? 2 : 3;
+    const max = loc === 'caparica' ? 3 : 2;
     _mbGroupSize = 1;
     const btns = document.querySelectorAll('.mb-group-btn');
     document.getElementById('mb-group-display').textContent = '1';
@@ -1124,7 +1139,8 @@
       const res = await fetch(`${API}/api/admin/staff`, { headers: { 'x-admin-password': adminPw } });
       const staff = await res.json();
       staff.filter(s => s.active).forEach(s => {
-        staffSel.innerHTML += `<option value="${s.id}">[${s.location === 'saldanha' ? 'Sal' : 'Cap'}] ${esc(s.name)}</option>`;
+        const locTag = s.location === 'saldanha' ? 'Sal' : s.location === 'ourique' ? 'Our' : 'Cap';
+        staffSel.innerHTML += `<option value="${s.id}">[${locTag}] ${esc(s.name)}</option>`;
       });
     } catch (_) {}
     document.getElementById('manualModal').classList.add('open');

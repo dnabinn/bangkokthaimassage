@@ -55,7 +55,8 @@ const mailer = nodemailer.createTransport({
 
 const LOC_ADDR = {
   saldanha: 'R. Gomes Freire 223C, 1150-178 Lisboa',
-  caparica: 'R. dos Pescadores 5, 2825-280 Costa da Caparica'
+  caparica: 'R. dos Pescadores 5, 2825-280 Costa da Caparica',
+  ourique: 'Campo de Ourique, Lisboa'
 };
 
 // ── HEALTH CHECK ──
@@ -159,7 +160,8 @@ app.post('/api/create-payment-intent', async (req, res) => {
     return res.status(400).json({ error: 'amount is required' });
   }
   try {
-    const locLabel = location === 'saldanha' ? 'Saldanha' : 'Costa da Caparica';
+    const LOC_LABELS = { saldanha: 'Saldanha', caparica: 'Costa da Caparica', ourique: 'Campo de Ourique' };
+    const locLabel = LOC_LABELS[location] || location;
     const params = {
       amount: Math.round(amount * 100), // euros → cents
       currency: 'eur',
@@ -199,7 +201,8 @@ app.post('/api/mbway-charge', async (req, res) => {
   }
   try {
     const toPhone = phone.startsWith('+') ? phone : '+351' + phone.replace(/\s/g, '');
-    const locLabel = location === 'saldanha' ? 'Saldanha' : 'Costa da Caparica';
+    const LOC_LABELS = { saldanha: 'Saldanha', caparica: 'Costa da Caparica', ourique: 'Campo de Ourique' };
+    const locLabel = LOC_LABELS[location] || location;
     // Create PaymentIntent for MB WAY
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100),
@@ -354,7 +357,9 @@ async function sendConfirmations({ ref, name, phone, email, location, service, d
   try {
     const staffPhone = location === 'saldanha'
       ? process.env.STAFF_PHONE_SALDANHA
-      : process.env.STAFF_PHONE_CAPARICA;
+      : location === 'ourique'
+        ? process.env.STAFF_PHONE_OURIQUE
+        : process.env.STAFF_PHONE_CAPARICA;
     if (staffPhone) {
       await twilioClient.messages.create({
         body: `[BTM] Nova reserva!\nRef: ${ref}\n${name} | ${phone}\n${service} – ${duration}min\n${date} às ${time}\nLocal: ${location}`,
@@ -454,6 +459,7 @@ app.get('/api/admin/stats', adminAuth, async (req, res) => {
         SUM(CASE WHEN status='confirmed' THEN price ELSE 0 END) AS revenue,
         SUM(CASE WHEN location='saldanha'  AND status='confirmed' THEN 1 ELSE 0 END) AS saldanha,
         SUM(CASE WHEN location='caparica'  AND status='confirmed' THEN 1 ELSE 0 END) AS caparica,
+        SUM(CASE WHEN location='ourique'   AND status='confirmed' THEN 1 ELSE 0 END) AS ourique,
         SUM(CASE WHEN date = CURDATE() THEN 1 ELSE 0 END) AS today
       FROM bookings
     `);
@@ -880,6 +886,8 @@ async function migrate() {
       { name: 'Terapeuta A', location: 'caparica', days: [0,1,2,3,4,5,6] },
       { name: 'Terapeuta B', location: 'caparica', days: [0,1,2,3,4,5,6] },
       { name: 'Terapeuta C', location: 'caparica', days: [0,3,5,6] },
+      { name: 'Terapeuta A', location: 'ourique', days: [0,1,2,3,4,5,6] },
+      { name: 'Terapeuta B', location: 'ourique', days: [0,1,2,3,4,5,6] },
     ];
     for (const s of seed) {
       const [result] = await db.execute(

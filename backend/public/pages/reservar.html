@@ -945,6 +945,13 @@
             <div class="loc-pick-card__detail">R. dos Pescadores 5<br>2825-280 Costa da Caparica</div>
             <div class="loc-pick-card__hours"><span>◷</span> <span data-pt="Seg – Sáb: 10h – 21h · Dom: 11h – 21h" data-en="Mon – Sat: 10am – 9pm · Sun: 11am – 9pm">Seg – Sáb: 10h – 21h · Dom: 11h – 21h</span></div>
           </div>
+          <div class="loc-pick-card" id="loc-ourique" onclick="selectLocation('ourique', this)">
+            <div class="loc-pick-card__check">✓</div>
+            <span class="loc-pick-card__city" data-pt="Lisboa" data-en="Lisbon">Lisboa</span>
+            <div class="loc-pick-card__name">Campo de Ourique</div>
+            <div class="loc-pick-card__detail">Campo de Ourique<br>Lisboa</div>
+            <div class="loc-pick-card__hours"><span>◷</span> <span data-pt="Seg – Dom: 10h – 21h" data-en="Mon – Sun: 10am – 9pm">Seg – Dom: 10h – 21h</span></div>
+          </div>
         </div>
         <div class="group-size-wrap" id="groupSizeWrap">
           <span class="group-label" data-pt="Número de pessoas" data-en="Number of people">Número de pessoas</span>
@@ -1204,12 +1211,27 @@
       { id:'combinada', name:'Massagem Combinada', nameEn:'Combined Massage', tag:'Thai + óleo + acupressão', tagEn:'Thai + oil + acupressure', durations:[{m:60,p:50},{m:90,p:75},{m:120,p:100}] },
       { id:'oleo', name:'Óleo Quente com Aroma Perfume', nameEn:'Warm Aromatherapy Oil', tag:'Aromaterapia · Óleo morno', tagEn:'Aromatherapy · Warm oil', durations:[{m:60,p:55},{m:90,p:80},{m:120,p:105}] },
       { id:'esfoliacao', name:'Massagem com Esfoliação', nameEn:'Exfoliation Massage', tag:'Esfoliação corporal · Pele suave', tagEn:'Body exfoliation · Smooth skin', durations:[{m:90,p:85},{m:120,p:110}] },
+    ],
+    ourique: [
+      { id:'relaxamento', name:'Massagem de Relaxamento', nameEn:'Relaxation Massage', tag:'Técnicas calmantes · Alívio da tensão', tagEn:'Calming techniques · Tension relief', durations:[{m:30,p:30},{m:60,p:50},{m:90,p:75},{m:120,p:100}] },
+      { id:'tradicional', name:'Massagem Tradicional Thai', nameEn:'Traditional Thai Massage', tag:'Acupressão · Alongamento · Trabalho energético', tagEn:'Acupressure · Stretching · Energy work', durations:[{m:60,p:50},{m:90,p:75},{m:120,p:100}] },
+      { id:'desportiva', name:'Massagem Desportiva / Tecido Profundo', nameEn:'Sports / Deep Tissue', tag:'Tensão muscular · Recuperação', tagEn:'Muscle tension · Recovery', durations:[{m:30,p:30},{m:60,p:50},{m:90,p:75},{m:120,p:100}] },
+      { id:'pes', name:'Massagem nos Pés', nameEn:'Foot Massage', tag:'Reflexologia · Circulação', tagEn:'Reflexology · Circulation', durations:[{m:30,p:30},{m:60,p:50}] },
+      { id:'cabeca', name:'Cabeça, Pescoço e Ombro', nameEn:'Head, Neck & Shoulder', tag:'Pressão suave · Tensão cervical', tagEn:'Gentle pressure · Cervical tension', durations:[{m:30,p:30},{m:60,p:50}] },
+      { id:'ervas', name:'Massagem com Ervas Quentes', nameEn:'Hot Herb Massage', tag:'Ervas tailandesas · Calor terapêutico', tagEn:'Thai herbs · Therapeutic heat', durations:[{m:90,p:85},{m:120,p:110}] },
+      { id:'coco', name:'Massagem com Óleo de Coco', nameEn:'Coconut Oil Massage', tag:'Hidratação · Aroma de coco', tagEn:'Hydration · Coconut aroma', durations:[{m:60,p:55},{m:90,p:80},{m:120,p:105}] },
+      { id:'casais', name:'Massagem para Casais', nameEn:'Couples Massage', tag:'Relaxamento partilhado · 2 pessoas', tagEn:'Shared relaxation · 2 people', durations:[{m:60,p:95},{m:90,p:145},{m:120,p:180}] },
+      { id:'pedra', name:'Pedra Quente', nameEn:'Hot Stone', tag:'Pedras basálticas · Pressão suave', tagEn:'Basalt stones · Gentle pressure', durations:[{m:90,p:85},{m:120,p:110}] },
+      { id:'combinada', name:'Massagem Combinada', nameEn:'Combined Massage', tag:'Thai + óleo + acupressão', tagEn:'Thai + oil + acupressure', durations:[{m:60,p:50},{m:90,p:75},{m:120,p:100}] },
+      { id:'oleo', name:'Óleo Quente com Aroma Perfume', nameEn:'Warm Aromatherapy Oil', tag:'Aromaterapia · Óleo morno', tagEn:'Aromatherapy · Warm oil', durations:[{m:60,p:55},{m:90,p:80},{m:120,p:105}] },
+      { id:'esfoliacao', name:'Massagem com Esfoliação', nameEn:'Exfoliation Massage', tag:'Esfoliação corporal · Pele suave', tagEn:'Body exfoliation · Smooth skin', durations:[{m:90,p:85},{m:120,p:110}] },
     ]
   };
 
   const LOC_INFO = {
     saldanha: { name:'Saldanha', addr:'R. Gomes Freire 223C, 1150-178 Lisboa', phone:'+351925693355', wa:'https://wa.me/+351925693355' },
-    caparica: { name:'Costa da Caparica', addr:'R. dos Pescadores 5, 2825-280 Costa da Caparica', phone:'+351932141557', wa:'https://wa.me/+351932141557' }
+    caparica: { name:'Costa da Caparica', addr:'R. dos Pescadores 5, 2825-280 Costa da Caparica', phone:'+351932141557', wa:'https://wa.me/+351932141557' },
+    ourique: { name:'Campo de Ourique', addr:'Campo de Ourique, Lisboa', phone:'+351 XXX XXX XXX', wa:'https://wa.me/+351XXXXXXXXX' }
   };
 
   const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -1806,7 +1828,7 @@
     const p = new URLSearchParams(window.location.search);
     const locP = p.get('loc');
     const svcP = p.get('svc');
-    if (locP === 'saldanha' || locP === 'caparica') {
+    if (locP === 'saldanha' || locP === 'caparica' || locP === 'ourique') {
       const card = document.getElementById('loc-' + locP);
       selectLocation(locP, card);
     }
