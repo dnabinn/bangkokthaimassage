@@ -1623,6 +1623,12 @@
     btn.disabled = true;
     btn.textContent = currentLang === 'en' ? 'Processing…' : 'A processar…';
 
+    // Guard: must have a valid location before submitting
+    if (!B.location || !['saldanha', 'caparica', 'ourique'].includes(B.location)) {
+      showError(currentLang === 'en' ? 'Please select a location first.' : 'Por favor selecione uma localização.');
+      return;
+    }
+
     const name  = document.getElementById('fName').value.trim() + ' ' + document.getElementById('fLast').value.trim();
     const email = document.getElementById('fEmail').value.trim();
     const phone = document.getElementById('fPhone').value.trim();
