@@ -813,7 +813,16 @@
     const books      = loc === 'saldanha' ? _bSal : loc === 'caparica' ? _bCap : _bOur;
     const page       = loc === 'saldanha' ? _pageSal : loc === 'caparica' ? _pageCap : _pageOur;
     const label      = loc === 'saldanha' ? 'Saldanha — Lisboa' : loc === 'caparica' ? 'Costa da Caparica' : 'Campo de Ourique';
-    if (!books.length) { el.innerHTML = ''; return; }
+    if (!books.length) {
+      el.innerHTML = `<div class="location-section">
+        <div class="location-header">
+          <h2>${label}</h2>
+          <span class="location-badge">0 reservas</span>
+        </div>
+        <p style="text-align:center;color:var(--muted,#888);padding:24px 0;font-size:14px">Sem reservas para esta localização.</p>
+      </div>`;
+      return;
+    }
 
     const total      = books.length;
     const totalPages = Math.ceil(total / PAGE_SIZE);
