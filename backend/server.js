@@ -857,7 +857,14 @@ async function migrate() {
     )
   `);
 
-  // 3. Add staff_id column to bookings if it doesn't exist
+  // 3. Ensure location column is VARCHAR (not ENUM) so 'ourique' can be stored
+  try {
+    await db.execute("ALTER TABLE bookings MODIFY COLUMN location VARCHAR(50) NOT NULL DEFAULT ''");
+  } catch (err) {
+    // Ignore — already correct type or no change needed
+  }
+
+  // 3b. Add staff_id column to bookings if it doesn't exist
   try {
     await db.execute('ALTER TABLE bookings ADD COLUMN staff_id INT NULL AFTER location');
   } catch (err) {
