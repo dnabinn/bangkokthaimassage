@@ -668,7 +668,20 @@ app.get('/api/admin/schedule', adminAuth, async (req, res) => {
 
 // ── PATCH /api/admin/bookings/:ref ──
 app.patch('/api/admin/bookings/:ref', adminAuth, async (req, res) => {
-  const { status } = req.body;
+  const { status, location } = req.body;
+
+  // Allow updating location only (no status change)
+  if (location && !status) {
+    const validLocations = ['saldanha', 'caparica', 'ourique'];
+    if (!validLocations.includes(location)) return res.status(400).json({ error: 'Invalid location' });
+    try {
+      await db.execute('UPDATE bookings SET location = ? WHERE ref = ?', [location, req.params.ref]);
+      return res.json({ success: true });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   if (!['confirmed', 'pending', 'cancelled'].includes(status)) {
     return res.status(400).json({ error: 'Invalid status' });
   }
